@@ -61,3 +61,27 @@ export const sendMessageTelegram1d1w = (
     },
   );
 };
+
+export const sendMessageTelegram4h1d = (
+  token,
+  trend1,
+  trend2,
+  data1,
+  data2,
+) => {
+  global.bot.telegram.sendMessage(
+    process.env.TELEGRAM_BOT_TOKEN_ID,
+    `<b>Token: </b> ${token}
+    \n<b>Trending 4h: ${trend1 === 1 ? 'Up' : trend1 === 2 ? 'Down' : ''} </b>
+    \n<b>Rsi</b>: ${data1.rsi} , <b>Ema</b>: ${data1.ema} , <b>Wma</b>: ${
+      data1.wma
+    }
+    \n<b>Trending 1d: ${trend2 === 1 ? 'Up' : trend2 === 2 ? 'Down' : ''}</b> 
+    \n<b>Rsi</b>: ${data2.rsi} , <b>Ema</b>: ${data2.ema} ,<b> Wma</b>: ${
+      data2.wma
+    }`,
+    {
+      parse_mode: 'HTML',
+    },
+  );
+};
