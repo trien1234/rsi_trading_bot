@@ -10,6 +10,10 @@ export const checkTechnical1h = async (__this: any, token) => {
   const priceData1h = await axios.get(
     `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=1h&limit=61`,
   );
+  console.log(
+    '🚀 ~ file: service.ts:13 ~ checkTechnical1h ~ priceData1h:',
+    priceData1h,
+  );
   const priceData4h = await axios.get(
     `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=4h&limit=61`,
   );
