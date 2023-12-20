@@ -24,6 +24,7 @@ export class AppService implements OnModuleInit {
   }
 
   async getTrend() {
+    console.log('getTrend');
     // for (const token of cryptoPairs) {
     //   setTimeout(() => {
     //     checkTechnical1h(this, token);
