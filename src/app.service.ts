@@ -24,12 +24,12 @@ export class AppService implements OnModuleInit {
   }
 
   async getTrend() {
-    console.log('getTrend');
-    for (const token of cryptoPairs) {
-      setTimeout(() => {
-        checkTechnical1h(this, token);
-      }, 500);
-    }
+    // console.log('getTrend');
+    // for (const token of cryptoPairs) {
+    //   setTimeout(() => {
+    //     checkTechnical1h(this, token);
+    //   }, 500);
+    // }
   }
 
   // @Cron(CronExpression.EVERY_HOUR)
