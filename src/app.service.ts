@@ -14,7 +14,7 @@ export class AppService implements OnModuleInit {
       const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
       for (const token of cryptoPairs) {
         await checkTechnical1h(this, token);
-        await sleep(1000);
+        await sleep(200);
       }
     });
 
@@ -22,7 +22,7 @@ export class AppService implements OnModuleInit {
       const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
       for (const token of cryptoPairs) {
         await checkTechnical4h(this, token);
-        await sleep(500);
+        await sleep(200);
       }
     });
 
@@ -30,7 +30,7 @@ export class AppService implements OnModuleInit {
       for (const token of cryptoPairs) {
         const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
         await checkTechnical1d(this, token);
-        await sleep(500);
+        await sleep(200);
       }
     });
   }
