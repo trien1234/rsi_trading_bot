@@ -11,26 +11,71 @@ import { cryptoPairs } from './tokens';
 export class AppService implements OnModuleInit {
   async onModuleInit() {
     global.bot.command('1h', async (msg) => {
-      const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+      let content = '';
+      global.bot.telegram.sendMessage(
+        msg.chat.id,
+        'The system is searching ...',
+        {
+          parse_mode: 'HTML',
+        },
+      );
       for (const token of cryptoPairs) {
-        await checkTechnical1h(this, token);
-        await sleep(200);
+        content += await checkTechnical1h(this, token);
+      }
+      if (content) {
+        global.bot.telegram.sendMessage(msg.chat.id, content, {
+          parse_mode: 'HTML',
+        });
+      } else {
+        global.bot.telegram.sendMessage(msg.chat.id, 'No data found!', {
+          parse_mode: 'HTML',
+        });
       }
     });
 
     global.bot.command('4h', async (msg) => {
-      const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+      global.bot.telegram.sendMessage(
+        msg.chat.id,
+        'The system is searching ...',
+        {
+          parse_mode: 'HTML',
+        },
+      );
+      let content = '';
       for (const token of cryptoPairs) {
-        await checkTechnical4h(this, token);
-        await sleep(200);
+        content += await checkTechnical4h(this, token);
+      }
+      if (content) {
+        global.bot.telegram.sendMessage(msg.chat.id, content, {
+          parse_mode: 'HTML',
+        });
+      } else {
+        global.bot.telegram.sendMessage(msg.chat.id, 'No data found!', {
+          parse_mode: 'HTML',
+        });
       }
     });
 
     global.bot.command('1d', async (msg) => {
+      global.bot.telegram.sendMessage(
+        msg.chat.id,
+        'The system is searching ...',
+        {
+          parse_mode: 'HTML',
+        },
+      );
+      let content = '';
       for (const token of cryptoPairs) {
-        const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-        await checkTechnical1d(this, token);
-        await sleep(200);
+        content += await checkTechnical1d(this, token);
+      }
+      if (content) {
+        global.bot.telegram.sendMessage(msg.chat.id, content, {
+          parse_mode: 'HTML',
+        });
+      } else {
+        global.bot.telegram.sendMessage(msg.chat.id, 'No data found!', {
+          parse_mode: 'HTML',
+        });
       }
     });
   }
