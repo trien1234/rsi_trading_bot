@@ -38,7 +38,8 @@ export const checkTechnical1d = async (__this: any, token) => {
 const checkTrendCommon = async (token, data1, data2, time1, time2) => {
   const price1 = data1?.data?.map((val) => val?.[4]);
   const price2 = data2?.data?.map((val) => val?.[4]);
-
+  price1.pop();
+  price2.pop();
   const dataRsi1 = rsi({ values: price1, period: 14 });
   const dataEma1 = ema({ values: dataRsi1, period: 9 });
   const dataWma1 = wma({ values: dataRsi1, period: 45 });
