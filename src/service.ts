@@ -3,41 +3,78 @@ import { rsi, ema, wma } from 'technicalindicators';
 import { checkTrend } from './common';
 
 export const checkTechnical1h = async (__this: any, token) => {
-  const priceData1h = await axios.get(
-    `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=1h&limit=61`,
-  );
+  let priceData1h = await __this.cacheManager.get(`${token}_1h`);
+  let priceData4h = await __this.cacheManager.get(`${token}_4h`);
 
-  const priceData4h = await axios.get(
-    `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=4h&limit=61`,
-  );
+  if (!priceData1h) {
+    console.log('priceData1h');
+    const result = await axios.get(
+      `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=1h&limit=61`,
+    );
+    priceData1h = result?.data?.map((val) => val?.[4]);
+  }
+
+  if (!priceData4h) {
+    console.log('priceData4h');
+
+    const result = await axios.get(
+      `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=4h&limit=61`,
+    );
+    priceData4h = result?.data?.map((val) => val?.[4]);
+  }
+
   return checkTrendCommon(token, priceData1h, priceData4h, '1h', '4h');
 };
 
 export const checkTechnical4h = async (__this: any, token) => {
-  const priceData4h = await axios.get(
-    `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=4h&limit=61`,
-  );
+  let priceData4h = await __this.cacheManager.get(`${token}_4h`);
+  let priceData1d = await __this.cacheManager.get(`${token}_1d`);
 
-  const priceData1d = await axios.get(
-    `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=1d&limit=61`,
-  );
+  if (!priceData4h) {
+    console.log('priceData4h');
+
+    const result = await axios.get(
+      `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=4h&limit=61`,
+    );
+    priceData4h = result?.data?.map((val) => val?.[4]);
+  }
+
+  if (!priceData1d) {
+    console.log('priceData1d');
+
+    const result = await axios.get(
+      `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=1d&limit=61`,
+    );
+    priceData1d = result?.data?.map((val) => val?.[4]);
+  }
   return checkTrendCommon(token, priceData4h, priceData1d, '4h', '1d');
 };
 
 export const checkTechnical1d = async (__this: any, token) => {
-  const priceData1d = await axios.get(
-    `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=1d&limit=61`,
-  );
+  let priceData1d = await __this.cacheManager.get(`${token}_1d`);
+  let priceData1w = await __this.cacheManager.get(`${token}_1w`);
 
-  const priceData1w = await axios.get(
-    `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=1w&limit=61`,
-  );
+  if (!priceData1d) {
+    console.log('priceData1d');
+
+    const result = await axios.get(
+      `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=1d&limit=61`,
+    );
+    priceData1d = result?.data?.map((val) => val?.[4]);
+  }
+
+  if (!priceData1w) {
+    console.log('priceData1w');
+
+    const result = await axios.get(
+      `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=1w&limit=61`,
+    );
+    priceData1w = result?.data?.map((val) => val?.[4]);
+  }
   return checkTrendCommon(token, priceData1d, priceData1w, '1d', '1w');
 };
 
-const checkTrendCommon = async (token, data1, data2, time1, time2) => {
-  const price1 = data1?.data?.map((val) => val?.[4]);
-  const price2 = data2?.data?.map((val) => val?.[4]);
+const checkTrendCommon = async (token, price1, price2, time1, time2) => {
   price1.pop();
   price2.pop();
   const dataRsi1 = rsi({ values: price1, period: 14 });

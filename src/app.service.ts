@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
 import {
@@ -7,8 +7,12 @@ import {
   checkTechnical4h,
 } from './service';
 import { cryptoPairs } from './tokens';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
+import axios from 'axios';
 @Injectable()
 export class AppService implements OnModuleInit {
+  constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
   async onModuleInit() {
     global.bot.command('1h', async (msg) => {
       let content = '';
@@ -81,23 +85,40 @@ export class AppService implements OnModuleInit {
   }
 
   async getTrend() {
-    // console.log('getTrend');
-    // for (const token of cryptoPairs) {
-    //   setTimeout(() => {
-    //     checkTechnical1h(this, token);
-    //   }, 500);
-    // }
+    console.log('done');
   }
 
-  // @Cron(CronExpression.EVERY_HOUR)
-  // async getRSI1H() {
-  //   console.log('pending job 1h');
-  //   for (const token of cryptoPairs) {
-  //     setTimeout(() => {
-  //       checkTechnical1h(this, token);
-  //     }, 500);
-  //   }
-  // }
+  @Cron(CronExpression.EVERY_5_MINUTES)
+  async getRSI() {
+    console.log('update cache');
+    for (const token of cryptoPairs) {
+      const res1h = await axios.get(
+        `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=1h&limit=61`,
+      );
+
+      const res4h = await axios.get(
+        `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=4h&limit=61`,
+      );
+
+      const res1d = await axios.get(
+        `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=1d&limit=61`,
+      );
+
+      const res1w = await axios.get(
+        `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=1w&limit=61`,
+      );
+      const data1h = res1h?.data?.map((val) => val?.[4]);
+      const data4h = res4h?.data?.map((val) => val?.[4]);
+      const data1d = res1d?.data?.map((val) => val?.[4]);
+      const data1w = res1w?.data?.map((val) => val?.[4]);
+
+      await this.cacheManager.set(`${token}_1h`, data1h, 0);
+      await this.cacheManager.set(`${token}_4h`, data4h, 0);
+      await this.cacheManager.set(`${token}_1d`, data1d, 0);
+      await this.cacheManager.set(`${token}_1w`, data1w, 0);
+    }
+    console.log('done');
+  }
 
   // @Cron(CronExpression.EVERY_DAY_AT_1AM)
   // async getRSI1D() {
