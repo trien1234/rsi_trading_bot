@@ -8,7 +8,11 @@ import { CacheModule } from '@nestjs/cache-manager';
   imports: [
     ScheduleModule.forRoot(),
     ConfigModule.forRoot(),
-    CacheModule.register(),
+    CacheModule.register({
+      isGlobal: true,
+      ttl: 3600, // seconds
+      max: 1000,
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],
