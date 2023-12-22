@@ -10,82 +10,118 @@ import { cryptoPairs } from './tokens';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import axios from 'axios';
+import { TREND_TYPE } from './constant';
+import { initData } from './initData';
 @Injectable()
 export class AppService implements OnModuleInit {
   constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
   async onModuleInit() {
-    global.bot.command('1h', async (msg) => {
-      let content = '';
-      for (const token of cryptoPairs) {
-        content += await checkTechnical1h(this, token);
-      }
-      if (content) {
-        global.bot.telegram.sendMessage(msg.chat.id, content, {
-          parse_mode: 'HTML',
-        });
-      } else {
-        global.bot.telegram.sendMessage(msg.chat.id, 'No data found!', {
-          parse_mode: 'HTML',
-        });
-      }
+    await initData(this);
+
+    global.bot.telegram.setMyCommands([
+      {
+        command: 'help',
+        description: 'Hướng dẫn',
+      },
+      {
+        command: '1h_diff_cr',
+        description: 'Lấy các token crypto có xu hướng ngược pha trong 1h - 4h',
+      },
+      {
+        command: '1h_equal_cr',
+        description: 'Lấy các token crypto có xu hướng đồng pha trong 1h - 4h',
+      },
+      {
+        command: '4h_diff_cr',
+        description: 'Lấy các token crypto có xu hướng ngược pha trong 4h - 1d',
+      },
+      {
+        command: '4h_equal_cr',
+        description: 'Lấy các token crypto có xu hướng đồng pha trong 4h - 1d',
+      },
+      {
+        command: '1d_diff_cr',
+        description: 'Lấy các token crypto có xu hướng ngược pha trong 1d - 1w',
+      },
+      {
+        command: '1d_equal_cr',
+        description: 'Lấy các token crypto có xu hướng đồng pha trong 1d - 1w',
+      },
+    ]);
+
+    global.bot.command('1h_diff_cr', async (msg) => {
+      this.checkToken(checkTechnical1h, TREND_TYPE.REVERSE_TREND, msg);
     });
 
-    global.bot.command('4h', async (msg) => {
-      let content = '';
-      for (const token of cryptoPairs) {
-        content += await checkTechnical4h(this, token);
-      }
-      if (content) {
-        global.bot.telegram.sendMessage(msg.chat.id, content, {
-          parse_mode: 'HTML',
-        });
-      } else {
-        global.bot.telegram.sendMessage(msg.chat.id, 'No data found!', {
-          parse_mode: 'HTML',
-        });
-      }
+    global.bot.command('1h_equal_cr', async (msg) => {
+      this.checkToken(checkTechnical1h, TREND_TYPE.SAME_TREND, msg);
     });
 
-    global.bot.command('1d', async (msg) => {
-      let content = '';
-      for (const token of cryptoPairs) {
-        content += await checkTechnical1d(this, token);
-      }
-      if (content) {
-        global.bot.telegram.sendMessage(msg.chat.id, content, {
+    global.bot.command('4h_diff_cr', async (msg) => {
+      this.checkToken(checkTechnical4h, TREND_TYPE.REVERSE_TREND, msg);
+    });
+
+    global.bot.command('4h_equal_cr', async (msg) => {
+      this.checkToken(checkTechnical4h, TREND_TYPE.SAME_TREND, msg);
+    });
+
+    global.bot.command('1d_diff_cr', async (msg) => {
+      this.checkToken(checkTechnical1d, TREND_TYPE.REVERSE_TREND, msg);
+    });
+
+    global.bot.command('1d_equal_cr', async (msg) => {
+      this.checkToken(checkTechnical1d, TREND_TYPE.SAME_TREND, msg);
+    });
+
+    global.bot.command('help', async (msg) => {
+      global.bot.telegram.sendMessage(
+        msg.chat.id,
+        `
+      \n /1h_diff_cr : Lấy các token crypto có xu hướng ngược pha trong 1h - 4h
+      \n /1h_equal_cr : Lấy các token crypto có xu hướng đồng pha trong 1h - 4h
+      \n /4h_diff_cr : Lấy các token crypto có xu hướng ngược pha trong 4h - 1d
+      \n /4h_equal_cr : Lấy các token crypto có xu hướng đồng pha trong 4h - 1d
+      \n /1d_diff_cr : Lấy các token crypto có xu hướng ngược pha trong 1d - 1w
+      \n /1d_equal_cr : Lấy các token crypto có xu hướng đồng pha trong 1d - 1w
+      `,
+        {
           parse_mode: 'HTML',
-        });
-      } else {
-        global.bot.telegram.sendMessage(msg.chat.id, 'No data found!', {
-          parse_mode: 'HTML',
-        });
-      }
+        },
+      );
     });
   }
 
   async getTrend() {
-    const priceData1h = await this.cacheManager.get(`BTCUSDT_1h`);
-    const priceData4h = await this.cacheManager.get(`BTCUSDT_4h`);
-    const priceData1d = await this.cacheManager.get(`BTCUSDT_1d`);
-    const priceData1w = await this.cacheManager.get(`BTCUSDT_1w`);
-
-    console.log(
-      '🚀 ~ file: app.service.ts:90 ~ AppService ~ getTrend ~ priceData1h:',
-      priceData1h,
-    );
-
-    console.log(
-      '🚀 ~ file: app.service.ts:95 ~ AppService ~ getTrend ~ priceData1w:',
-      priceData1w,
-    );
-    console.log(
-      '🚀 ~ file: app.service.ts:91 ~ AppService ~ getTrend ~ priceData4h:',
-      priceData4h,
-    );
-    console.log(
-      '🚀 ~ file: app.service.ts:92 ~ AppService ~ getTrend ~ priceData1d:',
-      priceData1d,
-    );
+    global.bot.telegram.setMyCommands([
+      {
+        command: 'help',
+        description: 'Hướng dẫn',
+      },
+      {
+        command: '1h_diff_cr',
+        description: 'Lấy các token crypto có xu hướng ngược pha trong 1h - 4h',
+      },
+      {
+        command: '1h_equal_cr',
+        description: 'Lấy các token crypto có xu hướng đồng pha trong 1h - 4h',
+      },
+      {
+        command: '4h_diff_cr',
+        description: 'Lấy các token crypto có xu hướng ngược pha trong 4h - 1d',
+      },
+      {
+        command: '4h_equal_cr',
+        description: 'Lấy các token crypto có xu hướng đồng pha trong 4h - 1d',
+      },
+      {
+        command: '1d_diff_cr',
+        description: 'Lấy các token crypto có xu hướng ngược pha trong 1d - 1w',
+      },
+      {
+        command: '1d_equal_cr',
+        description: 'Lấy các token crypto có xu hướng đồng pha trong 1d - 1w',
+      },
+    ]);
   }
 
   @Cron(CronExpression.EVERY_10_MINUTES)
@@ -145,4 +181,32 @@ export class AppService implements OnModuleInit {
     }
     console.log('done');
   }
+
+  checkToken = async (checkTechnical, type, msg) => {
+    const content = [];
+    for (const token of cryptoPairs) {
+      const data = await checkTechnical(this, token, type);
+      if (data) {
+        content.push(data);
+      }
+    }
+    if (content.length > 0) {
+      let batchSize = 10;
+      for (let i = 0; i < content.length; i = i + 10) {
+        const data = content.slice(i, batchSize);
+
+        if (data.length > 0) {
+          global.bot.telegram.sendMessage(msg.chat.id, data.toString(), {
+            parse_mode: 'HTML',
+          });
+        }
+
+        batchSize += 10;
+      }
+    } else {
+      global.bot.telegram.sendMessage(msg.chat.id, 'No data found!', {
+        parse_mode: 'HTML',
+      });
+    }
+  };
 }

@@ -1,0 +1,4 @@
+export const TREND_TYPE = {
+  SAME_TREND: 'SAME_TREND',
+  REVERSE_TREND: 'REVERSE_PHASE',
+};

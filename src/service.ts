@@ -1,8 +1,9 @@
 import axios from 'axios';
 import { rsi, ema, wma } from 'technicalindicators';
 import { checkTrend } from './common';
+import { TREND_TYPE } from './constant';
 
-export const checkTechnical1h = async (__this: any, token) => {
+export const checkTechnical1h = async (__this: any, token, type) => {
   let priceData1h = await __this.cacheManager.get(`${token}_1h`);
   let priceData4h = await __this.cacheManager.get(`${token}_4h`);
 
@@ -23,10 +24,10 @@ export const checkTechnical1h = async (__this: any, token) => {
     priceData4h = result?.data?.map((val) => val?.[4]);
   }
 
-  return checkTrendCommon(token, priceData1h, priceData4h, '1h', '4h');
+  return checkTrendCommon(token, priceData1h, priceData4h, '1h', '4h', type);
 };
 
-export const checkTechnical4h = async (__this: any, token) => {
+export const checkTechnical4h = async (__this: any, token, type) => {
   let priceData4h = await __this.cacheManager.get(`${token}_4h`);
   let priceData1d = await __this.cacheManager.get(`${token}_1d`);
 
@@ -47,10 +48,10 @@ export const checkTechnical4h = async (__this: any, token) => {
     );
     priceData1d = result?.data?.map((val) => val?.[4]);
   }
-  return checkTrendCommon(token, priceData4h, priceData1d, '4h', '1d');
+  return checkTrendCommon(token, priceData4h, priceData1d, '4h', '1d', type);
 };
 
-export const checkTechnical1d = async (__this: any, token) => {
+export const checkTechnical1d = async (__this: any, token, type) => {
   let priceData1d = await __this.cacheManager.get(`${token}_1d`);
   let priceData1w = await __this.cacheManager.get(`${token}_1w`);
 
@@ -71,10 +72,10 @@ export const checkTechnical1d = async (__this: any, token) => {
     );
     priceData1w = result?.data?.map((val) => val?.[4]);
   }
-  return checkTrendCommon(token, priceData1d, priceData1w, '1d', '1w');
+  return checkTrendCommon(token, priceData1d, priceData1w, '1d', '1w', type);
 };
 
-const checkTrendCommon = async (token, price1, price2, time1, time2) => {
+const checkTrendCommon = async (token, price1, price2, time1, time2, type) => {
   price1.pop();
   price2.pop();
   const dataRsi1 = rsi({ values: price1, period: 14 });
@@ -98,19 +99,27 @@ const checkTrendCommon = async (token, price1, price2, time1, time2) => {
 
   trend1 = await checkTrend(rsi1, ema1, wma1);
   trend2 = await checkTrend(rsi2, ema2, wma2);
-  let content = '';
-  if (trend1 && trend2 && trend1 !== trend2) {
-    content = `\n<b>Token: </b> ${token}
-    \n<b>Trending ${time1}: ${
-      trend1 === 1 ? 'Up' : trend1 === 2 ? 'Down' : ''
-    } </b>
-    \n<b>Rsi</b>: ${rsi1} , <b>Ema</b>: ${ema1} , <b>Wma</b>: ${wma1}
-    \n<b>Trending ${time2}: ${
-      trend2 === 1 ? 'Up' : trend2 === 2 ? 'Down' : ''
-    }</b> 
-    \n<b>Rsi</b>: ${rsi2} , <b>Ema</b>: ${ema2} ,<b> Wma</b>: ${wma2}
-    \n***********************************************
-    `;
+
+  const content = `\n<b>Token: </b> ${token}
+  \n<b>Trending ${time1}: ${
+    trend1 === 1 ? 'Up' : trend1 === 2 ? 'Down' : ''
+  } </b>
+  \n<b>Rsi</b>: ${rsi1} , <b>Ema</b>: ${ema1} , <b>Wma</b>: ${wma1}
+  \n<b>Trending ${time2}: ${
+    trend2 === 1 ? 'Up' : trend2 === 2 ? 'Down' : ''
+  }</b> 
+  \n<b>Rsi</b>: ${rsi2} , <b>Ema</b>: ${ema2} ,<b> Wma</b>: ${wma2}
+  \n***********************************************
+  `;
+
+  if (type === TREND_TYPE.SAME_TREND) {
+    if (trend1 && trend2 && trend1 == trend2) {
+      return content;
+    }
   }
-  return content;
+  if (type === TREND_TYPE.REVERSE_TREND) {
+    if (trend1 && trend2 && trend1 !== trend2) {
+      return content;
+    }
+  }
 };
