@@ -9,7 +9,7 @@ import { join } from 'path';
 import { Token } from './database/tokens.entity';
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Token]),
+    // TypeOrmModule.forFeature([Token]),
     ScheduleModule.forRoot(),
     ConfigModule.forRoot(),
     CacheModule.register({
@@ -17,16 +17,16 @@ import { Token } from './database/tokens.entity';
       ttl: 3600000000, // seconds
       max: 1000,
     }),
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: 'localhost',
-      port: 3306,
-      username: 'root',
-      password: 'root',
-      database: 'trendcrypto',
-      entities: [join(__dirname, 'database', '*.entity.{ts,js}')],
-      synchronize: true,
-    }),
+    // TypeOrmModule.forRoot({
+    //   type: 'mysql',
+    //   host: 'localhost',
+    //   port: 3306,
+    //   username: 'root',
+    //   password: 'root',
+    //   database: 'trendcrypto',
+    //   entities: [join(__dirname, 'database', '*.entity.{ts,js}')],
+    //   synchronize: true,
+    // }),
   ],
   controllers: [AppController],
   providers: [AppService],

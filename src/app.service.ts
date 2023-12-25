@@ -20,9 +20,7 @@ import { getRandomElement } from './common';
 @Injectable()
 export class AppService implements OnModuleInit {
   constructor(
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
-    @InjectRepository(Token)
-    private readonly tokenRepository: Repository<Token>,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache, // @InjectRepository(Token) // private readonly tokenRepository: Repository<Token>,
   ) {}
   async onModuleInit() {
     await initData(this);
