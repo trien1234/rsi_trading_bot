@@ -1,5 +1,3 @@
-import { cryptoPairs } from './tokens';
-
 export const checkTrend = async (rsi, ema, wma) => {
   const rsi_ema = Number(process.env.DIFFERENCE_RSI_EMA);
   const ema_wma = Number(process.env.DIFFERENCE_EMA_WMA);
@@ -14,4 +12,13 @@ export const checkTrend = async (rsi, ema, wma) => {
       return 2;
     }
   }
+};
+
+export const getRandomElement = (arr) => {
+  const randomIndex = Math.floor(Math.random() * arr.length);
+  return arr[randomIndex];
+};
+
+export const delay = (ms) => {
+  return new Promise((resolve, reject) => setTimeout(resolve, ms));
 };

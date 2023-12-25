@@ -100,3 +100,26 @@ export const cryptoPairs = [
   '1000SATSUSDT',
   'BONKUSDT',
 ];
+
+export const forexPairs = [
+  'XAU/USD',
+  'WTI/USD',
+  'EUR/USD',
+  'AUD/USD',
+  'NZD/USD',
+  'GBP/JPY',
+  'CHF/JPY',
+  'USD/JPY',
+  'EUR/JPY',
+  'CAD/JPY',
+  'AUD/JPY',
+  'NZD/JPY',
+  'GBP/CAD',
+  'EUR/CAD',
+  'USD/CAD',
+  'AUD/CAD',
+  'NZD/CAD',
+  'GBP/CAD',
+  'EUR/NZD',
+  'AUD/NZD',
+];

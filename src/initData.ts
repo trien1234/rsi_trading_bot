@@ -1,44 +1,56 @@
 import axios from 'axios';
-import { cryptoPairs } from './tokens';
+import { cryptoPairs, forexPairs } from './tokens';
+import { delay, getRandomElement } from './common';
+import { API_KEY_FOREX } from './constant';
 
 export const initData = async (__this: any) => {
   console.log('initData start');
-  for (const token of cryptoPairs) {
-    const res1h = await axios.get(
-      `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=1h&limit=61`,
-    );
 
-    const data1h = res1h?.data?.map((val) => val?.[4]);
-    await __this.cacheManager.set(`${token}_1h`, data1h, 3600000);
+  for (const token of forexPairs) {
+    await initFx(token, __this, '1h', '1h');
+    await initFx(token, __this, '4h', '4h');
+    await initFx(token, __this, '1day', '1d');
+    await initFx(token, __this, '1week', '1w');
   }
 
   for (const token of cryptoPairs) {
-    const res4h = await axios.get(
-      `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=4h&limit=61`,
-    );
-    const data4h = res4h?.data?.map((val) => val?.[4]);
-
-    await __this.cacheManager.set(`${token}_4h`, data4h, 3600000);
+    await initCr(token, __this, '1h');
+    await initCr(token, __this, '4h');
+    await initCr(token, __this, '1d');
+    await initCr(token, __this, '1w');
   }
 
-  for (const token of cryptoPairs) {
-    const res1d = await axios.get(
-      `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=1d&limit=61`,
-    );
-
-    const data1d = res1d?.data?.map((val) => val?.[4]);
-
-    await __this.cacheManager.set(`${token}_1d`, data1d, 3600000);
-  }
-
-  for (const token of cryptoPairs) {
-    const res1w = await axios.get(
-      `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=1w&limit=61`,
-    );
-
-    const data1w = res1w?.data?.map((val) => val?.[4]);
-
-    await __this.cacheManager.set(`${token}_1w`, data1w, 3600000);
-  }
   console.log('initData end');
+};
+
+export const initFx = async (token, __this, timeApi, timeCache) => {
+  await delay(30000);
+  const apikey = getRandomElement(API_KEY_FOREX);
+  try {
+    const res: any = await axios.get(
+      `https://api.twelvedata.com/time_series?symbol=${token}&interval=${timeApi}&outputsize=61&apikey=${apikey}`,
+    );
+
+    const data = res?.data?.values;
+
+    const result = data?.map((val: any) => val.close);
+    const reversed = result.reverse();
+    await __this.cacheManager.set(
+      `${token}_${timeCache}`,
+      reversed,
+      1209600000,
+    );
+  } catch (error) {
+    console.log('🚀 ~ file: initData.ts:119 ~ initFx ~ error:', error);
+  }
+};
+
+export const initCr = async (token, __this, time) => {
+  const res = await axios.get(
+    `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=${time}&limit=61`,
+  );
+
+  const data = res?.data?.map((val) => val?.[4]);
+  data.pop();
+  await __this.cacheManager.set(`${token}_${time}`, data, 3600000);
 };
