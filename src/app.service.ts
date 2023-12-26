@@ -32,53 +32,53 @@ export class AppService implements OnModuleInit {
       },
       {
         command: '1h_diff_cr',
-        description: 'Lấy các token crypto có xu hướng ngược pha trong 1h - 4h',
+        description: 'Crypto ngược pha(1h-4h)',
       },
       {
         command: '1h_equal_cr',
-        description: 'Lấy các token crypto có xu hướng đồng pha trong 1h - 4h',
+        description: 'Crypto đồng pha(1h-4h)',
       },
       {
         command: '4h_diff_cr',
-        description: 'Lấy các token crypto có xu hướng ngược pha trong 4h - 1d',
+        description: 'Crypto ngược pha(4h-1d)',
       },
       {
         command: '4h_equal_cr',
-        description: 'Lấy các token crypto có xu hướng đồng pha trong 4h - 1d',
+        description: 'Crypto đồng pha(4h-1d)',
       },
       {
         command: '1d_diff_cr',
-        description: 'Lấy các token crypto có xu hướng ngược pha trong 1d - 1w',
+        description: 'Crypto ngược pha(1d-1w)',
       },
       {
         command: '1d_equal_cr',
-        description: 'Lấy các token crypto có xu hướng đồng pha trong 1d - 1w',
+        description: 'Crypto đồng pha(1d-1w)',
       },
 
       //================================================================
       {
         command: '1h_diff_fx',
-        description: 'Lấy các token forex có xu hướng ngược pha trong 1h - 4h',
+        description: 'Forex ngược pha(1h-4h)',
       },
       {
         command: '1h_equal_fx',
-        description: 'Lấy các token forex có xu hướng đồng pha trong 1h - 4h',
+        description: 'Forex đồng pha(1h-4h)',
       },
       {
         command: '4h_diff_fx',
-        description: 'Lấy các token forex có xu hướng ngược pha trong 4h - 1d',
+        description: 'Forex ngược pha(4h-1d)',
       },
       {
         command: '4h_equal_fx',
-        description: 'Lấy các token forex có xu hướng đồng pha trong 4h - 1d',
+        description: 'Forex đồng pha(4h-1d)',
       },
       {
         command: '1d_diff_fx',
-        description: 'Lấy các token forex có xu hướng ngược pha trong 1d - 1w',
+        description: 'Forex ngược pha(1d-1w)',
       },
       {
         command: '1d_equal_fx',
-        description: 'Lấy các token forex có xu hướng đồng pha trong 1d - 1w',
+        description: 'Forex đồng pha(1d-1w)',
       },
     ]);
 
