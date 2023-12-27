@@ -24,7 +24,7 @@ export const initData = async (__this: any) => {
 };
 
 export const initFx = async (token, __this, timeApi, timeCache) => {
-  await delay(30000);
+  await delay(5000);
   const apikey = getRandomElement(API_KEY_FOREX);
   try {
     const res: any = await axios.get(

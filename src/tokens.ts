@@ -123,3 +123,5 @@ export const forexPairs = [
   'EUR/NZD',
   'AUD/NZD',
 ];
+
+export const popularToken = ['BTCUSDT', 'XAU/USD', 'WTI/USD'];

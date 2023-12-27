@@ -6,7 +6,7 @@ import {
   checkTechnical1h,
   checkTechnical4h,
 } from './service';
-import { cryptoPairs, forexPairs } from './tokens';
+import { cryptoPairs, forexPairs, popularToken } from './tokens';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import axios from 'axios';
@@ -79,6 +79,10 @@ export class AppService implements OnModuleInit {
       {
         command: '1d_equal_fx',
         description: 'Forex đồng pha(1d-1w)',
+      },
+      {
+        command: 'popular_token',
+        description: 'Btc, vàng , dầu',
       },
     ]);
 
@@ -177,6 +181,45 @@ export class AppService implements OnModuleInit {
       this.checkToken(checkTechnical1d, TREND_TYPE.SAME_TREND, msg, forexPairs);
     });
 
+    global.bot.command('popular_token', async (msg) => {
+      this.checkToken(
+        checkTechnical1h,
+        TREND_TYPE.SAME_TREND,
+        msg,
+        popularToken,
+      );
+      this.checkToken(
+        checkTechnical1h,
+        TREND_TYPE.REVERSE_TREND,
+        msg,
+        popularToken,
+      );
+      this.checkToken(
+        checkTechnical4h,
+        TREND_TYPE.SAME_TREND,
+        msg,
+        popularToken,
+      );
+      this.checkToken(
+        checkTechnical4h,
+        TREND_TYPE.REVERSE_TREND,
+        msg,
+        popularToken,
+      );
+      this.checkToken(
+        checkTechnical1d,
+        TREND_TYPE.SAME_TREND,
+        msg,
+        popularToken,
+      );
+      this.checkToken(
+        checkTechnical1d,
+        TREND_TYPE.REVERSE_TREND,
+        msg,
+        popularToken,
+      );
+    });
+
     global.bot.command('help', async (msg) => {
       global.bot.telegram.sendMessage(
         msg.chat.id,
@@ -194,6 +237,7 @@ export class AppService implements OnModuleInit {
       \n /4h_equal_fx : Lấy các token forex có xu hướng đồng pha trong 4h - 1d
       \n /1d_diff_fx : Lấy các token forex có xu hướng ngược pha trong 1d - 1w
       \n /1d_equal_fx : Lấy các token forex có xu hướng đồng pha trong 1d - 1w
+      \n /popular_token : Lấy thông tin BTC, Vàng, Dầu
       `,
         {
           parse_mode: 'HTML',
