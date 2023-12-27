@@ -24,7 +24,7 @@ export const initData = async (__this: any) => {
 };
 
 export const initFx = async (token, __this, timeApi, timeCache) => {
-  await delay(5000);
+  await delay(10000);
   const apikey = getRandomElement(API_KEY_FOREX);
   try {
     const res: any = await axios.get(
@@ -34,12 +34,14 @@ export const initFx = async (token, __this, timeApi, timeCache) => {
     const data = res?.data?.values;
 
     const result = data?.map((val: any) => val.close);
-    const reversed = result.reverse();
-    await __this.cacheManager.set(
-      `${token}_${timeCache}`,
-      reversed,
-      1209600000,
-    );
+    const reversed = result?.reverse();
+    if (reversed?.length > 0) {
+      await __this.cacheManager.set(
+        `${token}_${timeCache}`,
+        reversed,
+        1209600000,
+      );
+    }
   } catch (error) {
     console.log('🚀 ~ file: initData.ts:119 ~ initFx ~ error:', error);
   }
@@ -51,6 +53,8 @@ export const initCr = async (token, __this, time) => {
   );
 
   const data = res?.data?.map((val) => val?.[4]);
-  data.pop();
-  await __this.cacheManager.set(`${token}_${time}`, data, 3600000);
+  data?.pop();
+  if (data?.length > 0) {
+    await __this.cacheManager.set(`${token}_${time}`, data, 3600000);
+  }
 };
