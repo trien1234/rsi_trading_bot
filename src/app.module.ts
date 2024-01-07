@@ -14,7 +14,6 @@ import { Token } from './database/tokens.entity';
     ConfigModule.forRoot(),
     CacheModule.register({
       isGlobal: true,
-      ttl: 3600000000, // seconds
       max: 1000,
     }),
     // TypeOrmModule.forRoot({

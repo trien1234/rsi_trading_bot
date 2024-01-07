@@ -1,6 +1,8 @@
 import { ema, rsi, wma } from 'technicalindicators';
-import { checkTrend } from './common';
-import { TREND_TYPE } from './constant';
+import { checkTrend, getRandomElement } from './common';
+import { API_KEY_FOREX, TREND_TYPE } from './constant';
+import axios from 'axios';
+import { delay } from 'rxjs';
 
 export const checkTechnical1h = async (__this: any, token, type) => {
   const priceData1h = await __this.cacheManager.get(`${token}_1h`);
@@ -65,5 +67,192 @@ const checkTrendCommon = async (token, price1, price2, time1, time2, type) => {
     if (trend1 && trend2 && trend1 !== trend2) {
       return content;
     }
+  }
+};
+
+export const checkGoodMh = async (__this: any, token) => {
+  let priceData15m = await __this.cacheManager.get(`${token}_15m`);
+  let priceData1h = await __this.cacheManager.get(`${token}_1h`);
+  let priceData4h = await __this.cacheManager.get(`${token}_4h`);
+
+  if (priceData15m.length === 0) {
+    const res = await axios.get(
+      `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=15m&limit=61`,
+    );
+
+    priceData15m = res?.data?.map((val) => val?.[4]);
+    priceData15m?.pop();
+  }
+  if (priceData1h.length === 0) {
+    const res = await axios.get(
+      `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=1h&limit=61`,
+    );
+
+    priceData1h = res?.data?.map((val) => val?.[4]);
+    priceData1h?.pop();
+  }
+  if (priceData4h.length === 0) {
+    const res = await axios.get(
+      `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=4h&limit=61`,
+    );
+
+    priceData4h = res?.data?.map((val) => val?.[4]);
+    priceData4h?.pop();
+  }
+
+  const dataRsi1 = rsi({ values: priceData15m, period: 14 });
+  const dataEma1 = ema({ values: dataRsi1, period: 9 });
+  const dataWma1 = wma({ values: dataRsi1, period: 45 });
+
+  const dataRsi2 = rsi({ values: priceData1h, period: 14 });
+  const dataEma2 = ema({ values: dataRsi2, period: 9 });
+  const dataWma2 = wma({ values: dataRsi2, period: 45 });
+
+  const dataRsi3 = rsi({ values: priceData4h, period: 14 });
+  const dataEma3 = ema({ values: dataRsi3, period: 9 });
+  const dataWma3 = wma({ values: dataRsi3, period: 45 });
+
+  const rsi1 = dataRsi1[dataRsi1.length - 1];
+  const ema1 = dataEma1[dataEma1.length - 1];
+  const wma1 = dataWma1[dataWma1.length - 1];
+
+  const rsi2 = dataRsi2[dataRsi2.length - 1];
+  const ema2 = dataEma2[dataEma2.length - 1];
+  const wma2 = dataWma2[dataWma2.length - 1];
+
+  const rsi3 = dataRsi3[dataRsi3.length - 1];
+  const ema3 = dataEma3[dataEma3.length - 1];
+  const wma3 = dataWma3[dataWma3.length - 1];
+
+  if (
+    rsi3 > 40 &&
+    rsi3 < 50 &&
+    rsi3 > ema3 &&
+    rsi2 > ema2 &&
+    rsi1 > 60 &&
+    rsi1 > ema1
+  ) {
+    await __this.cacheManager.set(`${token}_good_mh`, 1, 14400000);
+    global.bot.telegram.sendMessage(
+      process.env.TELEGRAM_BOT_TOKEN_ID,
+      `<b>Buy và chờ buy: ${token} (Crypto)</b>`,
+      {
+        parse_mode: 'HTML',
+      },
+    );
+  }
+
+  if (
+    rsi3 < 60 &&
+    rsi3 > 50 &&
+    rsi3 < ema3 &&
+    rsi2 < ema2 &&
+    rsi1 < 40 &&
+    rsi1 < ema1
+  ) {
+    await __this.cacheManager.set(`${token}_good_mh`, 1, 14400000);
+    global.bot.telegram.sendMessage(
+      process.env.TELEGRAM_BOT_TOKEN_ID,
+      `<b>Sell và chờ sell: ${token} (Crypto)</b>`,
+      {
+        parse_mode: 'HTML',
+      },
+    );
+  }
+};
+
+export const checkGoodMhForex = async (__this: any, token) => {
+  await delay(10000);
+  const apikey = getRandomElement(API_KEY_FOREX);
+  let priceData15m = await __this.cacheManager.get(`${token}_1h`);
+  let priceData1h = await __this.cacheManager.get(`${token}_4h`);
+  let priceData4h = await __this.cacheManager.get(`${token}_1d`);
+
+  if (priceData15m.length === 0) {
+    const res = await axios.get(
+      `https://api.twelvedata.com/time_series?symbol=${token}&interval=1h&outputsize=61&apikey=${apikey}`,
+    );
+
+    const data = res?.data?.values;
+    const result = data?.map((val: any) => val.close);
+    priceData15m = result?.reverse();
+  }
+  if (priceData1h.length === 0) {
+    const res = await axios.get(
+      `https://api.twelvedata.com/time_series?symbol=${token}&interval=4h&outputsize=61&apikey=${apikey}`,
+    );
+
+    const data = res?.data?.values;
+    const result = data?.map((val: any) => val.close);
+    priceData1h = result?.reverse();
+  }
+  if (priceData4h.length === 0) {
+    const res = await axios.get(
+      `https://api.twelvedata.com/time_series?symbol=${token}&interval=1d&outputsize=61&apikey=${apikey}`,
+    );
+
+    const data = res?.data?.values;
+    const result = data?.map((val: any) => val.close);
+    priceData4h = result?.reverse();
+  }
+
+  const dataRsi1 = rsi({ values: priceData15m, period: 14 });
+  const dataEma1 = ema({ values: dataRsi1, period: 9 });
+  const dataWma1 = wma({ values: dataRsi1, period: 45 });
+
+  const dataRsi2 = rsi({ values: priceData1h, period: 14 });
+  const dataEma2 = ema({ values: dataRsi2, period: 9 });
+  const dataWma2 = wma({ values: dataRsi2, period: 45 });
+
+  const dataRsi3 = rsi({ values: priceData4h, period: 14 });
+  const dataEma3 = ema({ values: dataRsi3, period: 9 });
+  const dataWma3 = wma({ values: dataRsi3, period: 45 });
+
+  const rsi1 = dataRsi1[dataRsi1.length - 1];
+  const ema1 = dataEma1[dataEma1.length - 1];
+  const wma1 = dataWma1[dataWma1.length - 1];
+
+  const rsi2 = dataRsi2[dataRsi2.length - 1];
+  const ema2 = dataEma2[dataEma2.length - 1];
+  const wma2 = dataWma2[dataWma2.length - 1];
+
+  const rsi3 = dataRsi3[dataRsi3.length - 1];
+  const ema3 = dataEma3[dataEma3.length - 1];
+  const wma3 = dataWma3[dataWma3.length - 1];
+
+  if (
+    rsi3 > 40 &&
+    rsi3 < 50 &&
+    rsi3 > ema3 &&
+    rsi2 > ema2 &&
+    rsi1 > 60 &&
+    rsi1 > ema1
+  ) {
+    await __this.cacheManager.set(`${token}_good_mh`, 1, 14400000);
+    global.bot.telegram.sendMessage(
+      process.env.TELEGRAM_BOT_TOKEN_ID,
+      `<b>Buy và chờ buy: ${token} (Forex)</b>`,
+      {
+        parse_mode: 'HTML',
+      },
+    );
+  }
+
+  if (
+    rsi3 < 60 &&
+    rsi3 > 50 &&
+    rsi3 < ema3 &&
+    rsi2 < ema2 &&
+    rsi1 < 40 &&
+    rsi1 < ema1
+  ) {
+    await __this.cacheManager.set(`${token}_good_mh`, 1, 14400000);
+    global.bot.telegram.sendMessage(
+      process.env.TELEGRAM_BOT_TOKEN_ID,
+      `<b>Sell và chờ sell: ${token} (Forex)</b>`,
+      {
+        parse_mode: 'HTML',
+      },
+    );
   }
 };

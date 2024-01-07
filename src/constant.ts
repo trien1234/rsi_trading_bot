@@ -8,3 +8,6 @@ export const API_KEY_FOREX = [
   'f014acb4debc49d4a3aebe55798b95e2',
   'faefa3de19fc47f98a808e6a7db4cb96',
 ];
+
+//768843979
+//-1002037340096

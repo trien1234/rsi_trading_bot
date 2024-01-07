@@ -2,6 +2,8 @@ import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
 import {
+  checkGoodMh,
+  checkGoodMhForex,
   checkTechnical1d,
   checkTechnical1h,
   checkTechnical4h,
@@ -221,6 +223,10 @@ export class AppService implements OnModuleInit {
     });
 
     global.bot.command('help', async (msg) => {
+      console.log(
+        '🚀 ~ file: app.service.ts:225 ~ AppService ~ global.bot.command ~ msg:',
+        msg.chat.id,
+      );
       global.bot.telegram.sendMessage(
         msg.chat.id,
         `
@@ -279,6 +285,12 @@ export class AppService implements OnModuleInit {
   }
 
   //=============================Crypto===========================
+  @Cron(CronExpression.EVERY_5_MINUTES)
+  async getRSI15m() {
+    for (const token of cryptoPairs) {
+      await initCr(token, this, '15m');
+    }
+  }
 
   @Cron(CronExpression.EVERY_10_MINUTES)
   async getRSI1h() {
@@ -336,24 +348,9 @@ export class AppService implements OnModuleInit {
 
   async getCache() {
     const data1h = await this.cacheManager.get(`XAU/USD_1h`);
-    const data4h = await this.cacheManager.get(`XAU/USD_4h`);
     console.log(
-      '🚀 ~ file: app.service.ts:298 ~ AppService ~ getCache ~ data1h:',
+      '🚀 ~ file: app.service.ts:347 ~ AppService ~ getCache ~ data1h:',
       data1h,
-    );
-    console.log(
-      '🚀 ~ file: app.service.ts:299 ~ AppService ~ getCache ~ data4h:',
-      data4h,
-    );
-    const data1d = await this.cacheManager.get(`XAU/USD_1d`);
-    const data1w = await this.cacheManager.get(`XAU/USD_1w`);
-    console.log(
-      '🚀 ~ file: app.service.ts:302 ~ AppService ~ getCache ~ data1d:',
-      data1d,
-    );
-    console.log(
-      '🚀 ~ file: app.service.ts:303 ~ AppService ~ getCache ~ data1w:',
-      data1w,
     );
   }
 
@@ -445,4 +442,23 @@ export class AppService implements OnModuleInit {
   //     }
   //   }
   // }
+
+  @Cron(CronExpression.EVERY_5_MINUTES)
+  async getGoodMh() {
+    for (const token of cryptoPairs) {
+      const data: any = await this.cacheManager.get(`${token}_good_mh`);
+      if (!data) {
+        checkGoodMh(this, token);
+      }
+    }
+  }
+  @Cron(CronExpression.EVERY_HOUR)
+  async getGoodMhForex() {
+    for (const token of forexPairs) {
+      const data: any = await this.cacheManager.get(`${token}_good_mh`);
+      if (!data) {
+        checkGoodMhForex(this, token);
+      }
+    }
+  }
 }

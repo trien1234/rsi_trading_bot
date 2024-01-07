@@ -5,7 +5,6 @@ import { API_KEY_FOREX } from './constant';
 
 export const initData = async (__this: any) => {
   console.log('initData start');
-
   for (const token of forexPairs) {
     await initFx(token, __this, '1h', '1h');
     await initFx(token, __this, '4h', '4h');
@@ -14,6 +13,7 @@ export const initData = async (__this: any) => {
   }
 
   for (const token of cryptoPairs) {
+    await initCr(token, __this, '15m');
     await initCr(token, __this, '1h');
     await initCr(token, __this, '4h');
     await initCr(token, __this, '1d');
