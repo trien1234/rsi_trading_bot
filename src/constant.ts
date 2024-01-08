@@ -9,5 +9,6 @@ export const API_KEY_FOREX = [
   'faefa3de19fc47f98a808e6a7db4cb96',
 ];
 
-//768843979
-//-1002037340096
+//768843979 my bot
+//-1002037340096  cong dong
+// -1002081750696 lac quan teu

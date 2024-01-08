@@ -125,14 +125,21 @@ export const checkGoodMh = async (__this: any, token) => {
     const ema3 = dataEma3[dataEma3.length - 1];
     const wma3 = dataWma3[dataWma3.length - 1];
 
-    if (
-      rsi3 > 40 &&
-      rsi3 < 50 &&
-      rsi3 > ema3 &&
-      rsi2 > ema2 &&
-      rsi1 > 60 &&
-      rsi1 > ema1
-    ) {
+    // rsi3 < 32 &&
+    //   rsi3 > ema3 &&
+    //   rsi2 > 50 &&
+    //   rsi2 > ema2 &&
+    //   rsi1 > 65 &&
+    //   rsi1 > ema1;
+
+    // rsi3 > 40 &&
+    // rsi3 < 50 &&
+    // rsi3 > ema3 &&
+    // rsi2 > ema2 &&
+    // rsi1 > 60 &&
+    // rsi1 > ema1
+
+    if (rsi3 < 32 && rsi2 > 50 && rsi2 > ema2 && rsi1 > 65 && rsi1 > ema1) {
       await __this.cacheManager.set(`${token}_good_mh`, 1, 14400000);
       global.bot.telegram.sendMessage(
         process.env.TELEGRAM_BOT_TOKEN_ID,
@@ -143,14 +150,7 @@ export const checkGoodMh = async (__this: any, token) => {
       );
     }
 
-    if (
-      rsi3 < 60 &&
-      rsi3 > 50 &&
-      rsi3 < ema3 &&
-      rsi2 < ema2 &&
-      rsi1 < 40 &&
-      rsi1 < ema1
-    ) {
+    if (rsi3 > 68 && rsi2 < 50 && rsi2 < ema2 && rsi1 < 35 && rsi1 < ema1) {
       await __this.cacheManager.set(`${token}_good_mh`, 1, 14400000);
       global.bot.telegram.sendMessage(
         process.env.TELEGRAM_BOT_TOKEN_ID,

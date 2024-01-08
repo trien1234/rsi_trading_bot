@@ -354,18 +354,17 @@ export class AppService implements OnModuleInit {
     );
   }
 
-  //===============================
-
-  // @Cron(CronExpression.EVERY_MINUTE)
+  // @Cron(CronExpression.EVERY_5_MINUTES)
   // async getRsiHasTrend() {
   //   const rsi_ema = Number(process.env.DIFFERENCE_RSI_EMA);
   //   const ema_wma = Number(process.env.DIFFERENCE_EMA_WMA);
   //   for (const token of cryptoPairs) {
   //     const res1h = await axios.get(
-  //       `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=1m&limit=61`,
+  //       `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=5m&limit=61`,
   //     );
 
   //     const price = res1h?.data?.map((val) => val?.[4]);
+  //     price.pop();
   //     const rsis = rsi({ values: price, period: 14 });
   //     const emas = ema({ values: rsis, period: 9 });
   //     const wmas = wma({ values: rsis, period: 45 });
@@ -379,7 +378,9 @@ export class AppService implements OnModuleInit {
   //         token: token,
   //       },
   //     });
-  //     if (!data && rsiLast > 75) {
+
+  //     // lên 80
+  //     if (!data && rsiLast > 80) {
   //       await this.tokenRepository.save({
   //         token: token,
   //         process: 1,
@@ -387,13 +388,15 @@ export class AppService implements OnModuleInit {
   //       });
   //     }
 
-  //     if (!data && rsiLast < 25) {
+  //     if (!data && rsiLast < 20) {
   //       await this.tokenRepository.save({
   //         token: token,
   //         process: 1,
   //         trend: 'downd',
   //       });
   //     }
+
+  //     // rồi cắt xuống tẽ 3 đường
 
   //     if (data?.process === 1 && data?.trend === 'up') {
   //       if (
@@ -406,14 +409,6 @@ export class AppService implements OnModuleInit {
   //         await this.tokenRepository.save({
   //           process: 2,
   //           id: data.id,
-  //         });
-  //       }
-  //     }
-
-  //     if (data?.process === 2 && data?.trend === 'up') {
-  //       if (rsiLast - wmaLast > 1) {
-  //         global.bot.telegram.sendMessage(768843979, `${token} long`, {
-  //           parse_mode: 'HTML',
   //         });
   //       }
   //     }
@@ -433,32 +428,137 @@ export class AppService implements OnModuleInit {
   //       }
   //     }
 
+  //     //rsi cắt lên ema
+  //     if (data?.process === 2 && data?.trend === 'up') {
+  //       if (rsiLast > emaLast && emaLast < wmaLast) {
+  //         await this.tokenRepository.save({
+  //           id: data.id,
+  //           rsi: rsiLast,
+  //           price: price[price.length - 1],
+  //           process: 3,
+  //         });
+  //       }
+  //       if (rsiLast < 20) {
+  //         await this.tokenRepository.delete({
+  //           id: data.id,
+  //         });
+  //       }
+  //     }
+
   //     if (data?.process === 2 && data?.trend === 'downd') {
-  //       if (wmaLast - rsiLast > 1) {
-  //         global.bot.telegram.sendMessage(768843979, `${token} short`, {
+  //       if (rsiLast < emaLast && emaLast > wmaLast) {
+  //         await this.tokenRepository.save({
+  //           process: 3,
+  //           id: data.id,
+  //           rsi: rsiLast,
+  //           price: price[price.length - 1],
+  //         });
+  //       }
+  //       if (rsiLast > 80) {
+  //         await this.tokenRepository.delete({
+  //           id: data.id,
+  //         });
+  //       }
+  //     }
+
+  //     // rsi cắt xuống ema (chuẩn bị vòng thứ 2)
+
+  //     if (data?.process === 3 && data?.trend === 'up') {
+  //       if (rsiLast - emaLast > 3 && emaLast - wmaLast > 2) {
+  //         await this.tokenRepository.save({
+  //           process: 4,
+  //           id: data.id,
+  //           rsi: rsiLast,
+  //           price: price[price.length - 1],
+  //         });
+  //       }
+  //       // nếu k cắt xuống mà đi lên luôn thì delete
+  //       if (rsiLast > emaLast && emaLast > wmaLast) {
+  //         await this.tokenRepository.delete({
+  //           id: data.id,
+  //         });
+  //       }
+  //     }
+
+  //     if (data?.process === 3 && data?.trend === 'downd') {
+  //       if (emaLast - rsiLast > 3 && wmaLast - emaLast > 2) {
+  //         await this.tokenRepository.save({
+  //           process: 4,
+  //           id: data.id,
+  //           rsi: rsiLast,
+  //           price: price[price.length - 1],
+  //         });
+  //       }
+  //       // nếu k cắt lên mà đi xuống luôn thì delete
+  //       if (rsiLast < emaLast && emaLast < wmaLast) {
+  //         await this.tokenRepository.delete({
+  //           id: data.id,
+  //         });
+  //       }
+  //     }
+
+  //     //=========== chuẩn bị vòng 3 phân kì
+
+  //     if (data?.process === 4 && data?.trend === 'up') {
+  //       if (rsiLast > emaLast) {
+  //         global.bot.telegram.sendMessage(768843979, `Chuẩn bị long ${token}`, {
   //           parse_mode: 'HTML',
   //         });
+  //       }
+  //     }
+
+  //     if (data?.process === 4 && data?.trend === 'downd') {
+  //       if (rsiLast < emaLast) {
+  //         global.bot.telegram.sendMessage(
+  //           768843979,
+  //           `Chuẩn bị short ${token} `,
+  //           {
+  //             parse_mode: 'HTML',
+  //           },
+  //         );
   //       }
   //     }
   //   }
   // }
 
-  @Cron(CronExpression.EVERY_5_MINUTES)
-  async getGoodMh() {
-    for (const token of cryptoPairs) {
-      const data: any = await this.cacheManager.get(`${token}_good_mh`);
-      if (!data) {
-        checkGoodMh(this, token);
-      }
-    }
-  }
-  @Cron(CronExpression.EVERY_HOUR)
-  async getGoodMhForex() {
-    for (const token of forexPairs) {
-      const data: any = await this.cacheManager.get(`${token}_good_mh`);
-      if (!data) {
-        checkGoodMhForex(this, token);
-      }
-    }
-  }
+  // @Cron(CronExpression.EVERY_5_MINUTES)
+  // async macdTrend() {
+  //   for (const token of cryptoPairs) {
+  //     const res5m = await axios.get(
+  //       `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=5m&limit=100`,
+  //     );
+  //     const price = res5m?.data?.map((val) => Number(val?.[4]));
+  //     price.pop();
+  //     const macds = MACD.calculate({
+  //       values: price,
+  //       SimpleMAOscillator: false,
+  //       SimpleMASignal: false,
+  //       fastPeriod: 12,
+  //       slowPeriod: 26,
+  //       signalPeriod: 9,
+  //     });
+  //     const macdData = macds?.map((val) => val.histogram);
+  //     const result = macdData?.reverse();
+  //     checkMacdTrend(result, token);
+  //   }
+  // }
+
+  // @Cron(CronExpression.EVERY_5_MINUTES)
+  // async getGoodMh() {
+  //   for (const token of cryptoPairs) {
+  //     const data: any = await this.cacheManager.get(`${token}_good_mh`);
+  //     if (!data) {
+  //       checkGoodMh(this, token);
+  //     }
+  //   }
+  // }
+  // @Cron(CronExpression.EVERY_HOUR)
+  // async getGoodMhForex() {
+  //   for (const token of forexPairs) {
+  //     const data: any = await this.cacheManager.get(`${token}_good_mh`);
+  //     if (!data) {
+  //       checkGoodMhForex(this, token);
+  //     }
+  //   }
+  // }
 }
