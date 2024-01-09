@@ -7,6 +7,7 @@ import {
   checkTechnical1d,
   checkTechnical1h,
   checkTechnical4h,
+  checkTrendH4,
 } from './service';
 import { cryptoPairs, forexPairs, popularToken } from './tokens';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -22,7 +23,9 @@ import { getRandomElement } from './common';
 @Injectable()
 export class AppService implements OnModuleInit {
   constructor(
-    @Inject(CACHE_MANAGER) private cacheManager: Cache, // @InjectRepository(Token) // private readonly tokenRepository: Repository<Token>,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    @InjectRepository(Token)
+    private readonly tokenRepository: Repository<Token>,
   ) {}
   async onModuleInit() {
     await initData(this);
@@ -285,6 +288,20 @@ export class AppService implements OnModuleInit {
   }
 
   //=============================Crypto===========================
+  // @Cron(CronExpression.EVERY_MINUTE)
+  // async getRSI1m() {
+  //   for (const token of cryptoPairs) {
+  //     await initCr(token, this, '1m');
+  //   }
+  // }
+
+  // @Cron(CronExpression.EVERY_5_MINUTES)
+  // async getRSI5m() {
+  //   for (const token of cryptoPairs) {
+  //     await initCr(token, this, '5m');
+  //   }
+  // }
+
   @Cron(CronExpression.EVERY_5_MINUTES)
   async getRSI15m() {
     for (const token of cryptoPairs) {
@@ -543,15 +560,6 @@ export class AppService implements OnModuleInit {
   //   }
   // }
 
-  // @Cron(CronExpression.EVERY_5_MINUTES)
-  // async getGoodMh() {
-  //   for (const token of cryptoPairs) {
-  //     const data: any = await this.cacheManager.get(`${token}_good_mh`);
-  //     if (!data) {
-  //       checkGoodMh(this, token);
-  //     }
-  //   }
-  // }
   // @Cron(CronExpression.EVERY_HOUR)
   // async getGoodMhForex() {
   //   for (const token of forexPairs) {
@@ -561,4 +569,53 @@ export class AppService implements OnModuleInit {
   //     }
   //   }
   // }
+
+  @Cron(CronExpression.EVERY_HOUR)
+  async checkTrendH4Cr() {
+    for (const token of cryptoPairs) {
+      checkTrendH4(this, token, '4h', 172800000, 'CRYPTO');
+    }
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_1AM)
+  async checkTrendH4Fx() {
+    for (const token of cryptoPairs) {
+      checkTrendH4(this, token, '1d', 1036800000, 'FOREX'); //12d 1036800000
+    }
+  }
+
+  @Cron(CronExpression.EVERY_5_MINUTES)
+  async checkGoodMh() {
+    const data = await this.tokenRepository
+      .createQueryBuilder('tokens')
+      .where('tokens.nextTime < :value and tokens.type = :type', {
+        value: Date.now(),
+        type: 'CRYPTO',
+      })
+      .getMany();
+    console.log('🚀 ~ AppService ~ checkGoodMh ~ data:', data);
+
+    if (data.length > 0) {
+      for (const token of data) {
+        checkGoodMh(this, token, '15m', '1h', '4h');
+      }
+    }
+  }
+
+  @Cron(CronExpression.EVERY_HOUR)
+  async checkGoodMhFx() {
+    const data = await this.tokenRepository
+      .createQueryBuilder('tokens')
+      .where('tokens.nextTime < :value and tokens.type = :type', {
+        value: Date.now(),
+        type: 'FOREX',
+      })
+      .getMany();
+
+    if (data.length > 0) {
+      for (const token of data) {
+        checkGoodMh(this, token, '1h', '4h', '1d');
+      }
+    }
+  }
 }

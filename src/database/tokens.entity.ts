@@ -13,6 +13,12 @@ export class Token {
 
   @Column()
   process: number;
+
+  @Column()
+  nextTime: string;
+
+  @Column()
+  type: string;
 }
 
 // xuống dưới 35 và rsi < ema < wma lưu vào DB và lưu time sẽ check lại lần tới

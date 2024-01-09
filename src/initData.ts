@@ -13,6 +13,8 @@ export const initData = async (__this: any) => {
   }
 
   for (const token of cryptoPairs) {
+    // await initCr(token, __this, '1m');
+    // await initCr(token, __this, '5m');
     await initCr(token, __this, '15m');
     await initCr(token, __this, '1h');
     await initCr(token, __this, '4h');

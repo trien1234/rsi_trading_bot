@@ -70,36 +70,19 @@ const checkTrendCommon = async (token, price1, price2, time1, time2, type) => {
   }
 };
 
-export const checkGoodMh = async (__this: any, token) => {
+export const checkGoodMh = async (
+  __this: any,
+  tokenData,
+  time1,
+  time2,
+  time3,
+) => {
+  const token = tokenData.token;
+  const id = tokenData.id;
   try {
-    let priceData15m = await __this.cacheManager.get(`${token}_15m`);
-    let priceData1h = await __this.cacheManager.get(`${token}_1h`);
-    let priceData4h = await __this.cacheManager.get(`${token}_4h`);
-
-    if (priceData15m.length === 0) {
-      const res = await axios.get(
-        `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=15m&limit=61`,
-      );
-
-      priceData15m = res?.data?.map((val) => val?.[4]);
-      priceData15m?.pop();
-    }
-    if (priceData1h.length === 0) {
-      const res = await axios.get(
-        `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=1h&limit=61`,
-      );
-
-      priceData1h = res?.data?.map((val) => val?.[4]);
-      priceData1h?.pop();
-    }
-    if (priceData4h.length === 0) {
-      const res = await axios.get(
-        `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=4h&limit=61`,
-      );
-
-      priceData4h = res?.data?.map((val) => val?.[4]);
-      priceData4h?.pop();
-    }
+    const priceData15m = await __this.cacheManager.get(`${token}_${time1}`);
+    const priceData1h = await __this.cacheManager.get(`${token}_${time2}`);
+    const priceData4h = await __this.cacheManager.get(`${token}_${time3}`);
 
     const dataRsi1 = rsi({ values: priceData15m, period: 14 });
     const dataEma1 = ema({ values: dataRsi1, period: 9 });
@@ -139,26 +122,46 @@ export const checkGoodMh = async (__this: any, token) => {
     // rsi1 > 60 &&
     // rsi1 > ema1
 
-    if (rsi3 < 32 && rsi2 > 50 && rsi2 > ema2 && rsi1 > 65 && rsi1 > ema1) {
-      await __this.cacheManager.set(`${token}_good_mh`, 1, 14400000);
+    if (
+      rsi3 > 40 &&
+      rsi3 < 50 &&
+      rsi3 > ema3 &&
+      rsi2 > 50 &&
+      rsi2 > ema2 &&
+      rsi1 > 65 &&
+      rsi1 > ema1
+    ) {
       global.bot.telegram.sendMessage(
         process.env.TELEGRAM_BOT_TOKEN_ID,
-        `<b>Buy và chờ buy: ${token} (Crypto)</b>`,
+        `<b>Chờ buy: ${token} (Crypto)</b>`,
         {
           parse_mode: 'HTML',
         },
       );
+      await __this.tokenRepository.delete({
+        id: id,
+      });
     }
 
-    if (rsi3 > 68 && rsi2 < 50 && rsi2 < ema2 && rsi1 < 35 && rsi1 < ema1) {
-      await __this.cacheManager.set(`${token}_good_mh`, 1, 14400000);
+    if (
+      rsi3 < 60 &&
+      rsi3 > 50 &&
+      rsi3 < ema3 &&
+      rsi2 < 50 &&
+      rsi2 < ema2 &&
+      rsi1 < 35 &&
+      rsi1 < ema1
+    ) {
       global.bot.telegram.sendMessage(
         process.env.TELEGRAM_BOT_TOKEN_ID,
-        `<b>Sell và chờ sell: ${token} (Crypto)</b>`,
+        `<b>Chờ sell: ${token} (Crypto)</b>`,
         {
           parse_mode: 'HTML',
         },
       );
+      await __this.tokenRepository.delete({
+        id: id,
+      });
     }
   } catch (error) {
     console.log('🚀 ~ file: service.ts:77 ~ checkGoodMh ~ error:', error);
@@ -262,5 +265,55 @@ export const checkGoodMhForex = async (__this: any, token) => {
     }
   } catch (error) {
     console.log('🚀 ~ file: service.ts:260 ~ checkGoodMhForex ~ error:', error);
+  }
+};
+
+export const checkTrendH4 = async (
+  __this: any,
+  token,
+  time,
+  nextTime,
+  tokenType,
+) => {
+  const data = await __this.tokenRepository.findOne({
+    where: {
+      token: token,
+    },
+  });
+
+  const priceData4h = await __this.cacheManager.get(`${token}_${time}`);
+
+  const dataRsi3 = rsi({ values: priceData4h, period: 14 });
+  const dataEma3 = ema({ values: dataRsi3, period: 9 });
+  const dataWma3 = wma({ values: dataRsi3, period: 45 });
+
+  const rsi3 = dataRsi3[dataRsi3.length - 1];
+  const ema3 = dataEma3[dataEma3.length - 1];
+  const wma3 = dataWma3[dataWma3.length - 1];
+  if (rsi3 < 35 && rsi3 < ema3 && ema3 < wma3) {
+    const model: any = {
+      token: token,
+      process: 1,
+      trend: 'down',
+      nextTime: Date.now() + nextTime, //4h  172800000 // 1h 43200000  // 15m 10800000
+      type: tokenType,
+    };
+    if (data && data.trend === 'up') {
+      model.id = data.id;
+    }
+    await __this.tokenRepository.save(model);
+  }
+  if (rsi3 > 65 && rsi3 > ema3 && ema3 > wma3) {
+    const model: any = {
+      token: token,
+      process: 1,
+      trend: 'up',
+      nextTime: Date.now() + nextTime, //4h  172800000 // 1h 43200000  // 15m 10800000
+      type: tokenType,
+    };
+    if (data && data.trend === 'down') {
+      model.id = data.id;
+    }
+    await __this.tokenRepository.save(model);
   }
 };
