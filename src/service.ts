@@ -317,7 +317,7 @@ export const checkGoodMhForex = async (__this: any, token) => {
         rsi1 > 60 &&
         rsi1 > ema1
       ) {
-        await __this.cacheManager.set(`${token}_good_mh`, 1, 144000000000000);
+        await __this.cacheManager.set(`${token}_good_mh`, 1, 144000000000);
         global.bot.telegram.sendMessage(
           process.env.TELEGRAM_BOT_TOKEN_ID,
           `<b>Buy và chờ buy: ${token} (Forex)</b>`,
@@ -335,7 +335,7 @@ export const checkGoodMhForex = async (__this: any, token) => {
         rsi1 < 40 &&
         rsi1 < ema1
       ) {
-        await __this.cacheManager.set(`${token}_good_mh`, 1, 144000000000000);
+        await __this.cacheManager.set(`${token}_good_mh`, 1, 144000000000);
         global.bot.telegram.sendMessage(
           process.env.TELEGRAM_BOT_TOKEN_ID,
           `<b>Sell và chờ sell: ${token} (Forex)</b>`,
