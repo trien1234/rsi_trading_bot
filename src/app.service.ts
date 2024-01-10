@@ -302,34 +302,34 @@ export class AppService implements OnModuleInit {
   //   }
   // }
 
-  @Cron(CronExpression.EVERY_5_MINUTES)
+  @Cron('0 */15 * * * *')
   async getRSI15m() {
     for (const token of cryptoPairs) {
       await initCr(token, this, '15m');
     }
   }
 
-  @Cron(CronExpression.EVERY_10_MINUTES)
+  @Cron('7 0-23/1 * * *')
   async getRSI1h() {
     for (const token of cryptoPairs) {
       await initCr(token, this, '1h');
     }
   }
-  @Cron(CronExpression.EVERY_10_MINUTES)
+  @Cron('17 0-23/4 * * *')
   async getRSI4h() {
     for (const token of cryptoPairs) {
       await initCr(token, this, '4h');
     }
   }
 
-  @Cron(CronExpression.EVERY_10_MINUTES)
+  @Cron(CronExpression.EVERY_DAY_AT_2AM)
   async getRSI1d() {
     for (const token of cryptoPairs) {
       await initCr(token, this, '1d');
     }
   }
 
-  @Cron(CronExpression.EVERY_10_MINUTES)
+  @Cron('0 50 02 * * 1-2')
   async getRSI1w() {
     for (const token of cryptoPairs) {
       await initCr(token, this, '1w');
@@ -570,7 +570,7 @@ export class AppService implements OnModuleInit {
   //   }
   // }
 
-  @Cron(CronExpression.EVERY_HOUR)
+  @Cron('19 0-23/4 * * *')
   async checkTrendH4Cr() {
     for (const token of cryptoPairs) {
       checkTrendH4(this, token, '4h', 172800000, 'CRYPTO');
@@ -584,7 +584,7 @@ export class AppService implements OnModuleInit {
     }
   }
 
-  @Cron(CronExpression.EVERY_5_MINUTES)
+  @Cron('0 */15 * * * *')
   async checkGoodMh() {
     const data = await this.tokenRepository
       .createQueryBuilder('tokens')
