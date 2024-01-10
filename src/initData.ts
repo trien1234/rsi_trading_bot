@@ -41,7 +41,7 @@ export const initFx = async (token, __this, timeApi, timeCache) => {
       await __this.cacheManager.set(
         `${token}_${timeCache}`,
         reversed,
-        144000000000,
+        1440000000,
       );
     }
   } catch (error) {
@@ -57,6 +57,6 @@ export const initCr = async (token, __this, time) => {
   const data = res?.data?.map((val) => val?.[4]);
   data?.pop();
   if (data?.length > 0) {
-    await __this.cacheManager.set(`${token}_${time}`, data, 144000000000);
+    await __this.cacheManager.set(`${token}_${time}`, data, 1440000000);
   }
 };

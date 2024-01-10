@@ -15,7 +15,7 @@ import { Token } from './database/tokens.entity';
     CacheModule.register({
       isGlobal: true,
       max: 1000,
-      ttl: 144000000, // seconds
+      ttl: 1440000, // seconds
     }),
     TypeOrmModule.forRoot({
       type: 'mysql',
