@@ -380,7 +380,7 @@ export const checkTrendH4 = async (
         nextTime: Date.now() + nextTime, //4h  172800000 // 1h 43200000  // 15m 10800000
         type: tokenType,
       };
-      if (data && data.trend === 'up') {
+      if (data) {
         model.id = data.id;
       }
       await __this.tokenRepository.save(model);
@@ -393,7 +393,7 @@ export const checkTrendH4 = async (
         nextTime: Date.now() + nextTime, //4h  172800000 // 1h 43200000  // 15m 10800000
         type: tokenType,
       };
-      if (data && data.trend === 'down') {
+      if (data) {
         model.id = data.id;
       }
       await __this.tokenRepository.save(model);
