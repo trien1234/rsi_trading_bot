@@ -579,7 +579,7 @@ export class AppService implements OnModuleInit {
 
   @Cron(CronExpression.EVERY_DAY_AT_1AM)
   async checkTrendH4Fx() {
-    for (const token of cryptoPairs) {
+    for (const token of forexPairs) {
       checkTrendH4(this, token, '1d', 1036800000, 'FOREX'); //12d 1036800000
     }
   }
