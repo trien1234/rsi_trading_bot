@@ -372,7 +372,7 @@ export const checkTrendH4 = async (
     const rsi3 = dataRsi3[dataRsi3.length - 1];
     const ema3 = dataEma3[dataEma3.length - 1];
     const wma3 = dataWma3[dataWma3.length - 1];
-    if (rsi3 < 35 && rsi3 < ema3 && ema3 < wma3) {
+    if (rsi3 < 40 && rsi3 < ema3 && ema3 < wma3) {
       const model: any = {
         token: token,
         process: 1,
@@ -385,7 +385,7 @@ export const checkTrendH4 = async (
       }
       await __this.tokenRepository.save(model);
     }
-    if (rsi3 > 65 && rsi3 > ema3 && ema3 > wma3) {
+    if (rsi3 > 60 && rsi3 > ema3 && ema3 > wma3) {
       const model: any = {
         token: token,
         process: 1,
