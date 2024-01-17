@@ -7,9 +7,10 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
 import { Token } from './database/tokens.entity';
+import { TokenHaveTrend } from './database/tokensHaveTrend.entity';
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Token]),
+    TypeOrmModule.forFeature([Token, TokenHaveTrend]),
     ScheduleModule.forRoot(),
     ConfigModule.forRoot(),
     CacheModule.register({
