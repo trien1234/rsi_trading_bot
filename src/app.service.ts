@@ -436,15 +436,15 @@ export class AppService implements OnModuleInit {
         }
 
         // rồi cắt xuống tẽ 3 đường
-        const rsi_ema = Number(process.env.DIFFERENCE_RSI_EMA);
-        const ema_wma = Number(process.env.DIFFERENCE_EMA_WMA);
+        const rsi_ema = 1;
+        const ema_wma = 1;
 
         if (data?.process === 1 && data?.trend === 'up') {
           if (rsiLast < emaLast && emaLast < wmaLast) {
             if (emaLast - rsiLast > rsi_ema && wmaLast - emaLast > ema_wma) {
               global.bot.telegram.sendMessage(
                 process.env.TELEGRAM_BOT_TOKEN_MY_ID,
-                `<b>Chờ đến fibo 0.5 buy: ${token} time: ${time}</b>`,
+                `<b>Chờ đến kháng cự gần nhất, phân kì hoặc fibo 0.5 buy: ${token} time: ${time}</b>`,
                 {
                   parse_mode: 'HTML',
                 },
@@ -461,7 +461,7 @@ export class AppService implements OnModuleInit {
             if (rsiLast - emaLast < rsi_ema && emaLast - wmaLast < ema_wma) {
               global.bot.telegram.sendMessage(
                 process.env.TELEGRAM_BOT_TOKEN_MY_ID,
-                `<b>Chờ đến fibo 0.5 sell: ${token} time: ${time}</b>`,
+                `<b>Chờ đến kháng cự gần nhất, phân kì hoặc fibo 0.5 sell: ${token} time: ${time}</b>`,
                 {
                   parse_mode: 'HTML',
                 },
