@@ -367,6 +367,7 @@ export class AppService implements OnModuleInit {
       let priceData15m: any = await this.cacheManager.get(`${token}_15m`);
       let priceData1h: any = await this.cacheManager.get(`${token}_1h`);
       let priceData4h: any = await this.cacheManager.get(`${token}_4h`);
+      let priceData1d: any = await this.cacheManager.get(`${token}_1d`);
 
       if (!priceData15m?.length || priceData15m?.length === 0) {
         const res = await axios.get(
@@ -391,6 +392,14 @@ export class AppService implements OnModuleInit {
 
         priceData4h = res?.data?.map((val) => val?.[4]);
         priceData4h?.pop();
+      }
+      if (!priceData1d?.length || priceData1d?.length === 0) {
+        const res = await axios.get(
+          `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=1d&limit=61`,
+        );
+
+        priceData1d = res?.data?.map((val) => val?.[4]);
+        priceData1d?.pop();
       }
       const checkToken = async (price, time) => {
         const rsis = rsi({ values: price, period: 14 });
@@ -436,40 +445,33 @@ export class AppService implements OnModuleInit {
         }
 
         // rồi cắt xuống tẽ 3 đường
-        const rsi_ema = 1;
-        const ema_wma = 1;
-
         if (data?.process === 1 && data?.trend === 'up') {
           if (rsiLast < emaLast && emaLast < wmaLast) {
-            if (emaLast - rsiLast > rsi_ema && wmaLast - emaLast > ema_wma) {
-              global.bot.telegram.sendMessage(
-                process.env.TELEGRAM_BOT_TOKEN_MY_ID,
-                `<b>Chờ đến kháng cự gần nhất, phân kì hoặc fibo 0.5 buy: ${token} time: ${time}</b>`,
-                {
-                  parse_mode: 'HTML',
-                },
-              );
-              await this.tokenHaveTrendRepository.delete({
-                id: data.id,
-              });
-            }
+            global.bot.telegram.sendMessage(
+              process.env.TELEGRAM_BOT_TOKEN_MY_ID,
+              `<b>Chờ đến kháng cự gần nhất, phân kì hoặc fibo 0.5 buy: ${token} time: ${time}</b>`,
+              {
+                parse_mode: 'HTML',
+              },
+            );
+            await this.tokenHaveTrendRepository.delete({
+              id: data.id,
+            });
           }
         }
 
         if (data?.process === 1 && data?.trend === 'downd') {
           if (rsiLast > emaLast && emaLast > wmaLast) {
-            if (rsiLast - emaLast < rsi_ema && emaLast - wmaLast < ema_wma) {
-              global.bot.telegram.sendMessage(
-                process.env.TELEGRAM_BOT_TOKEN_MY_ID,
-                `<b>Chờ đến kháng cự gần nhất, phân kì hoặc fibo 0.5 sell: ${token} time: ${time}</b>`,
-                {
-                  parse_mode: 'HTML',
-                },
-              );
-              await this.tokenHaveTrendRepository.delete({
-                id: data.id,
-              });
-            }
+            global.bot.telegram.sendMessage(
+              process.env.TELEGRAM_BOT_TOKEN_MY_ID,
+              `<b>Chờ đến kháng cự gần nhất, phân kì hoặc fibo 0.5 sell: ${token} time: ${time}</b>`,
+              {
+                parse_mode: 'HTML',
+              },
+            );
+            await this.tokenHaveTrendRepository.delete({
+              id: data.id,
+            });
           }
         }
       };
@@ -477,6 +479,7 @@ export class AppService implements OnModuleInit {
       checkToken(priceData15m, '15m');
       checkToken(priceData1h, '1h');
       checkToken(priceData4h, '4h');
+      checkToken(priceData1d, '1d');
     }
   }
 
