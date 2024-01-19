@@ -407,8 +407,8 @@ export class AppService implements OnModuleInit {
         const wmas = wma({ values: rsis, period: 45 });
 
         const rsiLast = rsis[rsis.length - 1];
-        const emaLast = rsis[emas.length - 1];
-        const wmaLast = rsis[wmas.length - 1];
+        const emaLast = emas[emas.length - 1];
+        const wmaLast = wmas[wmas.length - 1];
 
         const data = await this.tokenHaveTrendRepository.findOne({
           where: {
