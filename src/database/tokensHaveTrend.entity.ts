@@ -16,4 +16,7 @@ export class TokenHaveTrend {
 
   @Column()
   time: string;
+
+  @Column()
+  type: string;
 }
