@@ -493,45 +493,18 @@ export class AppService implements OnModuleInit {
   }
 
   @Cron('0 */5 * * * *')
-  async getRsiHasTrendXau() {
+  async getRsiHasTrendXau5m() {
     await delay(10000);
     const apikey = getRandomElement(API_KEY_FOREX);
     for (const token of popularTokenFoRex) {
-      let priceData5m: any = await this.cacheManager.get(`${token}_5m`);
-      let priceData15m: any = await this.cacheManager.get(`${token}_15m`);
-      let priceData1h: any = await this.cacheManager.get(`${token}_1h`);
+      const res: any = await axios.get(
+        `https://api.twelvedata.com/time_series?symbol=${token}&interval=5m&outputsize=61&apikey=${apikey}`,
+      );
 
-      if (!priceData5m?.length || priceData5m?.length === 0) {
-        const res: any = await axios.get(
-          `https://api.twelvedata.com/time_series?symbol=${token}&interval=5m&outputsize=61&apikey=${apikey}`,
-        );
+      const data = res?.data?.values;
 
-        const data = res?.data?.values;
-
-        const result = data?.map((val: any) => val.close);
-        priceData5m = result?.reverse();
-      }
-
-      if (!priceData15m?.length || priceData15m?.length === 0) {
-        const res: any = await axios.get(
-          `https://api.twelvedata.com/time_series?symbol=${token}&interval=15m&outputsize=61&apikey=${apikey}`,
-        );
-
-        const data = res?.data?.values;
-
-        const result = data?.map((val: any) => val.close);
-        priceData15m = result?.reverse();
-      }
-      if (!priceData1h?.length || priceData1h?.length === 0) {
-        const res: any = await axios.get(
-          `https://api.twelvedata.com/time_series?symbol=${token}&interval=1h&outputsize=61&apikey=${apikey}`,
-        );
-
-        const data = res?.data?.values;
-
-        const result = data?.map((val: any) => val.close);
-        priceData1h = result?.reverse();
-      }
+      const result = data?.map((val: any) => val.close);
+      const priceData5m = result?.reverse();
 
       const checkToken = async (price, time) => {
         const rsis = rsi({ values: price, period: 14 });
@@ -613,11 +586,102 @@ export class AppService implements OnModuleInit {
       if (!priceData5m?.length || priceData5m?.length === 0) {
         checkToken(priceData5m, '5m');
       }
+    }
+  }
+
+  @Cron('0 */15 * * * *')
+  async getRsiHasTrendXau15m() {
+    await delay(10000);
+    const apikey = getRandomElement(API_KEY_FOREX);
+    for (const token of popularTokenFoRex) {
+      const res: any = await axios.get(
+        `https://api.twelvedata.com/time_series?symbol=${token}&interval=15m&outputsize=61&apikey=${apikey}`,
+      );
+
+      const data = res?.data?.values;
+
+      const result = data?.map((val: any) => val.close);
+      const priceData15m = result?.reverse();
+
+      const checkToken = async (price, time) => {
+        const rsis = rsi({ values: price, period: 14 });
+        const emas = ema({ values: rsis, period: 9 });
+        const wmas = wma({ values: rsis, period: 45 });
+
+        const rsiLast = rsis[rsis.length - 1];
+        const emaLast = emas[emas.length - 1];
+        const wmaLast = wmas[wmas.length - 1];
+
+        const data = await this.tokenHaveTrendRepository.findOne({
+          where: {
+            token: token,
+            time: time,
+            type: 'FOREX',
+          },
+        });
+
+        // lên 80
+        if (rsiLast > 80) {
+          const dataModel: any = {
+            token: token,
+            process: 1,
+            trend: 'up',
+            time: time,
+            type: 'FOREX',
+          };
+          if (data) {
+            dataModel.id = data.id;
+          }
+          await this.tokenHaveTrendRepository.save(dataModel);
+        }
+
+        if (rsiLast < 20) {
+          const dataModel: any = {
+            token: token,
+            process: 1,
+            trend: 'downd',
+            time: time,
+            type: 'FOREX',
+          };
+          if (data) {
+            dataModel.id = data.id;
+          }
+          await this.tokenHaveTrendRepository.save(dataModel);
+        }
+
+        // rồi cắt xuống tẽ 3 đường
+        if (data?.process === 1 && data?.trend === 'up') {
+          if (rsiLast < emaLast && emaLast < wmaLast) {
+            global.bot.telegram.sendMessage(
+              process.env.TELEGRAM_BOT_TOKEN_XAU_ID,
+              `<b>Chờ đến kháng cự gần nhất, phân kì hoặc fibo 0.5 buy: ${token} time: ${time}</b>`,
+              {
+                parse_mode: 'HTML',
+              },
+            );
+            await this.tokenHaveTrendRepository.delete({
+              id: data.id,
+            });
+          }
+        }
+
+        if (data?.process === 1 && data?.trend === 'downd') {
+          if (rsiLast > emaLast && emaLast > wmaLast) {
+            global.bot.telegram.sendMessage(
+              process.env.TELEGRAM_BOT_TOKEN_XAU_ID,
+              `<b>Chờ đến kháng cự gần nhất, phân kì hoặc fibo 0.5 sell: ${token} time: ${time}</b>`,
+              {
+                parse_mode: 'HTML',
+              },
+            );
+            await this.tokenHaveTrendRepository.delete({
+              id: data.id,
+            });
+          }
+        }
+      };
       if (!priceData15m?.length || priceData15m?.length === 0) {
         checkToken(priceData15m, '15m');
-      }
-      if (!priceData1h?.length || priceData1h?.length === 0) {
-        checkToken(priceData1h, '1h');
       }
     }
   }
