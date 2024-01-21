@@ -583,7 +583,7 @@ export class AppService implements OnModuleInit {
           }
         }
       };
-      if (!priceData5m?.length || priceData5m?.length === 0) {
+      if (priceData5m?.length > 0) {
         checkToken(priceData5m, '5m');
       }
     }
@@ -680,7 +680,7 @@ export class AppService implements OnModuleInit {
           }
         }
       };
-      if (!priceData15m?.length || priceData15m?.length === 0) {
+      if (priceData15m?.length > 0) {
         checkToken(priceData15m, '15m');
       }
     }
