@@ -492,7 +492,7 @@ export class AppService implements OnModuleInit {
     }
   }
 
-  @Cron('0 */15 * * * *')
+  @Cron('0 */5 * * * *')
   async getRsiHasTrendXau() {
     await delay(10000);
     const apikey = getRandomElement(API_KEY_FOREX);
@@ -610,10 +610,15 @@ export class AppService implements OnModuleInit {
           }
         }
       };
-
-      checkToken(priceData5m, '5m');
-      checkToken(priceData15m, '15m');
-      checkToken(priceData1h, '1h');
+      if (!priceData5m?.length || priceData5m?.length === 0) {
+        checkToken(priceData5m, '5m');
+      }
+      if (!priceData15m?.length || priceData15m?.length === 0) {
+        checkToken(priceData15m, '15m');
+      }
+      if (!priceData1h?.length || priceData1h?.length === 0) {
+        checkToken(priceData1h, '1h');
+      }
     }
   }
 
