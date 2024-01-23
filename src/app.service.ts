@@ -498,7 +498,7 @@ export class AppService implements OnModuleInit {
     const apikey = getRandomElement(API_KEY_FOREX);
     for (const token of popularTokenFoRex) {
       const res: any = await axios.get(
-        `https://api.twelvedata.com/time_series?symbol=${token}&interval=5m&outputsize=61&apikey=${apikey}`,
+        `https://api.twelvedata.com/time_series?symbol=${token}&interval=5min&outputsize=61&apikey=${apikey}`,
       );
 
       const data = res?.data?.values;
@@ -595,7 +595,7 @@ export class AppService implements OnModuleInit {
     const apikey = getRandomElement(API_KEY_FOREX);
     for (const token of popularTokenFoRex) {
       const res: any = await axios.get(
-        `https://api.twelvedata.com/time_series?symbol=${token}&interval=15m&outputsize=61&apikey=${apikey}`,
+        `https://api.twelvedata.com/time_series?symbol=${token}&interval=15min&outputsize=61&apikey=${apikey}`,
       );
 
       const data = res?.data?.values;
