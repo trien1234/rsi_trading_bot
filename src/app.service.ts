@@ -367,6 +367,17 @@ export class AppService implements OnModuleInit {
     );
   }
 
+  async webhook(body) {
+    console.log('🚀 ~ webhook', body);
+    global.bot.telegram.sendMessage(
+      process.env.TELEGRAM_BOT_TOKEN_XAU_ID,
+      `<b>${body}</b>`,
+      {
+        parse_mode: 'HTML',
+      },
+    );
+  }
+
   @Cron('0 */15 * * * *')
   async getRsiHasTrend() {
     for (const token of cryptoPairs) {
