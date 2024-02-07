@@ -371,7 +371,7 @@ export class AppService implements OnModuleInit {
     console.log('🚀 ~ webhook', body);
     global.bot.telegram.sendMessage(
       process.env.TELEGRAM_BOT_TOKEN_XAU_ID,
-      `<b>${body}</b>`,
+      `<b>${body?.text}</b>`,
       {
         parse_mode: 'HTML',
       },
