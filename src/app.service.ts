@@ -510,10 +510,10 @@ export class AppService implements OnModuleInit {
     }
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_1AM)
+  @Cron('19 0-23/4 * * *')
   async checkTrendH4Fx() {
     for (const token of forexPairs) {
-      checkTrendH4(this, token, '1d', 1036800000, 'FOREX'); //12d 1036800000
+      checkTrendH4(this, token, '4h', 172800000, 'FOREX');
     }
   }
 
