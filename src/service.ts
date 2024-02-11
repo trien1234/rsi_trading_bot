@@ -130,6 +130,7 @@ export const checkGoodMh = async (
   time1,
   time2,
   time3,
+  type,
 ) => {
   const token = tokenData.token;
   const id = tokenData.id;
@@ -139,25 +140,52 @@ export const checkGoodMh = async (
     let priceData4h = await __this.cacheManager.get(`${token}_${time3}`);
 
     if (!priceData15m?.length || priceData15m?.length === 0) {
-      const res = await axios.get(
-        `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=15m&limit=61`,
-      );
+      let res;
+      if (type === 'CRYPTO') {
+        res = await axios.get(
+          `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=15m&limit=61`,
+        );
+      } else {
+        await delay(10000);
+        const apikey = getRandomElement(API_KEY_FOREX);
+        res = await axios.get(
+          `https://api.twelvedata.com/time_series?symbol=${token}&interval=15min&outputsize=61&apikey=${apikey}`,
+        );
+      }
 
       priceData15m = res?.data?.map((val) => val?.[4]);
       priceData15m?.pop();
     }
     if (!priceData1h?.length || priceData1h?.length === 0) {
-      const res = await axios.get(
-        `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=1h&limit=61`,
-      );
+      let res;
+      if (type === 'CRYPTO') {
+        res = await axios.get(
+          `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=1h&limit=61`,
+        );
+      } else {
+        await delay(10000);
+        const apikey = getRandomElement(API_KEY_FOREX);
+        res = await axios.get(
+          `https://api.twelvedata.com/time_series?symbol=${token}&interval=1h&outputsize=61&apikey=${apikey}`,
+        );
+      }
 
       priceData1h = res?.data?.map((val) => val?.[4]);
       priceData1h?.pop();
     }
     if (!priceData4h?.length || priceData4h?.length === 0) {
-      const res = await axios.get(
-        `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=4h&limit=61`,
-      );
+      let res;
+      if (type === 'CRYPTO') {
+        res = await axios.get(
+          `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=4h&limit=61`,
+        );
+      } else {
+        await delay(10000);
+        const apikey = getRandomElement(API_KEY_FOREX);
+        res = await axios.get(
+          `https://api.twelvedata.com/time_series?symbol=${token}&interval=4h&outputsize=61&apikey=${apikey}`,
+        );
+      }
 
       priceData4h = res?.data?.map((val) => val?.[4]);
       priceData4h?.pop();
@@ -212,7 +240,7 @@ export const checkGoodMh = async (
       ) {
         global.bot.telegram.sendMessage(
           process.env.TELEGRAM_BOT_TOKEN_ID,
-          `<b>Chờ buy: ${token} (Crypto)</b>`,
+          `<b>Chờ buy: ${token} (${type})</b>`,
           {
             parse_mode: 'HTML',
           },
@@ -233,7 +261,7 @@ export const checkGoodMh = async (
       ) {
         global.bot.telegram.sendMessage(
           process.env.TELEGRAM_BOT_TOKEN_ID,
-          `<b>Chờ sell: ${token} (Crypto)</b>`,
+          `<b>Chờ sell: ${token} (${type})</b>`,
           {
             parse_mode: 'HTML',
           },
@@ -245,108 +273,6 @@ export const checkGoodMh = async (
     }
   } catch (error) {
     console.log('🚀 ~ file: service.ts:77 ~ checkGoodMh ~ error:', error);
-  }
-};
-
-export const checkGoodMhForex = async (__this: any, token) => {
-  try {
-    await delay(10000);
-    const apikey = getRandomElement(API_KEY_FOREX);
-    let priceData15m = await __this.cacheManager.get(`${token}_1h`);
-    let priceData1h = await __this.cacheManager.get(`${token}_4h`);
-    let priceData4h = await __this.cacheManager.get(`${token}_1d`);
-
-    if (priceData15m.length === 0) {
-      const res = await axios.get(
-        `https://api.twelvedata.com/time_series?symbol=${token}&interval=1h&outputsize=61&apikey=${apikey}`,
-      );
-
-      const data = res?.data?.values;
-      const result = data?.map((val: any) => val.close);
-      priceData15m = result?.reverse();
-    }
-    if (priceData1h.length === 0) {
-      const res = await axios.get(
-        `https://api.twelvedata.com/time_series?symbol=${token}&interval=4h&outputsize=61&apikey=${apikey}`,
-      );
-
-      const data = res?.data?.values;
-      const result = data?.map((val: any) => val.close);
-      priceData1h = result?.reverse();
-    }
-    if (priceData4h.length === 0) {
-      const res = await axios.get(
-        `https://api.twelvedata.com/time_series?symbol=${token}&interval=1d&outputsize=61&apikey=${apikey}`,
-      );
-
-      const data = res?.data?.values;
-      const result = data?.map((val: any) => val.close);
-      priceData4h = result?.reverse();
-    }
-
-    if (priceData15m?.length && priceData1h?.length && priceData4h?.length) {
-      const dataRsi1 = rsi({ values: priceData15m, period: 14 });
-      const dataEma1 = ema({ values: dataRsi1, period: 9 });
-      const dataWma1 = wma({ values: dataRsi1, period: 45 });
-
-      const dataRsi2 = rsi({ values: priceData1h, period: 14 });
-      const dataEma2 = ema({ values: dataRsi2, period: 9 });
-      const dataWma2 = wma({ values: dataRsi2, period: 45 });
-
-      const dataRsi3 = rsi({ values: priceData4h, period: 14 });
-      const dataEma3 = ema({ values: dataRsi3, period: 9 });
-      const dataWma3 = wma({ values: dataRsi3, period: 45 });
-
-      const rsi1 = dataRsi1[dataRsi1.length - 1];
-      const ema1 = dataEma1[dataEma1.length - 1];
-      const wma1 = dataWma1[dataWma1.length - 1];
-
-      const rsi2 = dataRsi2[dataRsi2.length - 1];
-      const ema2 = dataEma2[dataEma2.length - 1];
-      const wma2 = dataWma2[dataWma2.length - 1];
-
-      const rsi3 = dataRsi3[dataRsi3.length - 1];
-      const ema3 = dataEma3[dataEma3.length - 1];
-      const wma3 = dataWma3[dataWma3.length - 1];
-
-      if (
-        rsi3 > 40 &&
-        rsi3 < 50 &&
-        rsi3 > ema3 &&
-        rsi2 > ema2 &&
-        rsi1 > 60 &&
-        rsi1 > ema1
-      ) {
-        await __this.cacheManager.set(`${token}_good_mh`, 1, 1440000000);
-        global.bot.telegram.sendMessage(
-          process.env.TELEGRAM_BOT_TOKEN_ID,
-          `<b>Buy và chờ buy: ${token} (Forex)</b>`,
-          {
-            parse_mode: 'HTML',
-          },
-        );
-      }
-
-      if (
-        rsi3 < 60 &&
-        rsi3 > 50 &&
-        rsi3 < ema3 &&
-        rsi2 < ema2 &&
-        rsi1 < 40 &&
-        rsi1 < ema1
-      ) {
-        await __this.cacheManager.set(`${token}_good_mh`, 1, 1440000000);
-        global.bot.telegram.sendMessage(
-          process.env.TELEGRAM_BOT_TOKEN_ID,
-          `<b>Sell và chờ sell: ${token} (Forex)</b>`,
-          {
-            parse_mode: 'HTML',
-          },
-        );
-      }
-    }
-  } catch (error) {
-    console.log('🚀 ~ file: service.ts:260 ~ checkGoodMhForex ~ error:', error);
   }
 };
 

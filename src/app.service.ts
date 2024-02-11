@@ -1,32 +1,24 @@
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { InjectRepository } from '@nestjs/typeorm';
+import axios from 'axios';
+import { Cache } from 'cache-manager';
+import { ema, rsi, wma } from 'technicalindicators';
+import { Repository } from 'typeorm';
+import { TREND_TYPE } from './constant';
+import { Token } from './database/tokens.entity';
+import { TokenHaveTrend } from './database/tokensHaveTrend.entity';
+import { initCr, initData, initFx } from './initData';
 import {
   checkGoodMh,
-  checkGoodMhForex,
   checkTechnical1d,
   checkTechnical1h,
   checkTechnical4h,
   checkTrendH4,
 } from './service';
-import {
-  cryptoPairs,
-  forexPairs,
-  popularToken,
-  popularTokenFoRex,
-} from './tokens';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
-import axios from 'axios';
-import { API_KEY_FOREX, TREND_TYPE } from './constant';
-import { initCr, initData, initFx } from './initData';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Token } from './database/tokens.entity';
-import { Repository } from 'typeorm';
-import { ema, rsi, wma } from 'technicalindicators';
-import { getRandomElement } from './common';
-import { TokenHaveTrend } from './database/tokensHaveTrend.entity';
-import { delay } from 'rxjs';
+import { cryptoPairs, forexPairs, popularToken } from './tokens';
 @Injectable()
 export class AppService implements OnModuleInit {
   constructor(
@@ -265,6 +257,14 @@ export class AppService implements OnModuleInit {
   }
 
   //============================Forex==============================
+
+  @Cron('0 */15 * * * *')
+  async getFx15m() {
+    for (const token of forexPairs) {
+      await initFx(token, this, '15min', '15m');
+    }
+  }
+
   @Cron('5 0-23/1 * * *')
   async getFx1h() {
     console.log('update cache 1h fx', new Date());
@@ -503,200 +503,6 @@ export class AppService implements OnModuleInit {
     }
   }
 
-  @Cron('0 */5 * * * *')
-  async getRsiHasTrendXau5m() {
-    await delay(10000);
-    const apikey = getRandomElement(API_KEY_FOREX);
-    for (const token of popularTokenFoRex) {
-      const res: any = await axios.get(
-        `https://api.twelvedata.com/time_series?symbol=${token}&interval=5min&outputsize=61&apikey=${apikey}`,
-      );
-
-      const data = res?.data?.values;
-
-      const result = data?.map((val: any) => val.close);
-      const priceData5m = result?.reverse();
-
-      const checkToken = async (price, time) => {
-        const rsis = rsi({ values: price, period: 14 });
-        const emas = ema({ values: rsis, period: 9 });
-        const wmas = wma({ values: rsis, period: 45 });
-
-        const rsiLast = rsis[rsis.length - 1];
-        const emaLast = emas[emas.length - 1];
-        const wmaLast = wmas[wmas.length - 1];
-
-        const data = await this.tokenHaveTrendRepository.findOne({
-          where: {
-            token: token,
-            time: time,
-            type: 'FOREX',
-          },
-        });
-
-        // lên 80
-        if (rsiLast > 80) {
-          const dataModel: any = {
-            token: token,
-            process: 1,
-            trend: 'up',
-            time: time,
-            type: 'FOREX',
-          };
-          if (data) {
-            dataModel.id = data.id;
-          }
-          await this.tokenHaveTrendRepository.save(dataModel);
-        }
-
-        if (rsiLast < 20) {
-          const dataModel: any = {
-            token: token,
-            process: 1,
-            trend: 'downd',
-            time: time,
-            type: 'FOREX',
-          };
-          if (data) {
-            dataModel.id = data.id;
-          }
-          await this.tokenHaveTrendRepository.save(dataModel);
-        }
-
-        // rồi cắt xuống tẽ 3 đường
-        if (data?.process === 1 && data?.trend === 'up') {
-          if (rsiLast < emaLast && emaLast < wmaLast) {
-            global.bot.telegram.sendMessage(
-              process.env.TELEGRAM_BOT_TOKEN_XAU_ID,
-              `<b>Chờ đến kháng cự gần nhất, phân kì hoặc fibo 0.5 buy: ${token} time: ${time}</b>`,
-              {
-                parse_mode: 'HTML',
-              },
-            );
-            await this.tokenHaveTrendRepository.delete({
-              id: data.id,
-            });
-          }
-        }
-
-        if (data?.process === 1 && data?.trend === 'downd') {
-          if (rsiLast > emaLast && emaLast > wmaLast) {
-            global.bot.telegram.sendMessage(
-              process.env.TELEGRAM_BOT_TOKEN_XAU_ID,
-              `<b>Chờ đến kháng cự gần nhất, phân kì hoặc fibo 0.5 sell: ${token} time: ${time}</b>`,
-              {
-                parse_mode: 'HTML',
-              },
-            );
-            await this.tokenHaveTrendRepository.delete({
-              id: data.id,
-            });
-          }
-        }
-      };
-      if (priceData5m?.length > 0) {
-        checkToken(priceData5m, '5m');
-      }
-    }
-  }
-
-  @Cron('0 */15 * * * *')
-  async getRsiHasTrendXau15m() {
-    await delay(10000);
-    const apikey = getRandomElement(API_KEY_FOREX);
-    for (const token of popularTokenFoRex) {
-      const res: any = await axios.get(
-        `https://api.twelvedata.com/time_series?symbol=${token}&interval=15min&outputsize=61&apikey=${apikey}`,
-      );
-
-      const data = res?.data?.values;
-
-      const result = data?.map((val: any) => val.close);
-      const priceData15m = result?.reverse();
-
-      const checkToken = async (price, time) => {
-        const rsis = rsi({ values: price, period: 14 });
-        const emas = ema({ values: rsis, period: 9 });
-        const wmas = wma({ values: rsis, period: 45 });
-
-        const rsiLast = rsis[rsis.length - 1];
-        const emaLast = emas[emas.length - 1];
-        const wmaLast = wmas[wmas.length - 1];
-
-        const data = await this.tokenHaveTrendRepository.findOne({
-          where: {
-            token: token,
-            time: time,
-            type: 'FOREX',
-          },
-        });
-
-        // lên 80
-        if (rsiLast > 80) {
-          const dataModel: any = {
-            token: token,
-            process: 1,
-            trend: 'up',
-            time: time,
-            type: 'FOREX',
-          };
-          if (data) {
-            dataModel.id = data.id;
-          }
-          await this.tokenHaveTrendRepository.save(dataModel);
-        }
-
-        if (rsiLast < 20) {
-          const dataModel: any = {
-            token: token,
-            process: 1,
-            trend: 'downd',
-            time: time,
-            type: 'FOREX',
-          };
-          if (data) {
-            dataModel.id = data.id;
-          }
-          await this.tokenHaveTrendRepository.save(dataModel);
-        }
-
-        // rồi cắt xuống tẽ 3 đường
-        if (data?.process === 1 && data?.trend === 'up') {
-          if (rsiLast < emaLast && emaLast < wmaLast) {
-            global.bot.telegram.sendMessage(
-              process.env.TELEGRAM_BOT_TOKEN_XAU_ID,
-              `<b>Chờ đến kháng cự gần nhất, phân kì hoặc fibo 0.5 buy: ${token} time: ${time}</b>`,
-              {
-                parse_mode: 'HTML',
-              },
-            );
-            await this.tokenHaveTrendRepository.delete({
-              id: data.id,
-            });
-          }
-        }
-
-        if (data?.process === 1 && data?.trend === 'downd') {
-          if (rsiLast > emaLast && emaLast > wmaLast) {
-            global.bot.telegram.sendMessage(
-              process.env.TELEGRAM_BOT_TOKEN_XAU_ID,
-              `<b>Chờ đến kháng cự gần nhất, phân kì hoặc fibo 0.5 sell: ${token} time: ${time}</b>`,
-              {
-                parse_mode: 'HTML',
-              },
-            );
-            await this.tokenHaveTrendRepository.delete({
-              id: data.id,
-            });
-          }
-        }
-      };
-      if (priceData15m?.length > 0) {
-        checkToken(priceData15m, '15m');
-      }
-    }
-  }
-
   @Cron('19 0-23/4 * * *')
   async checkTrendH4Cr() {
     for (const token of cryptoPairs) {
@@ -724,12 +530,12 @@ export class AppService implements OnModuleInit {
 
     if (data.length > 0) {
       for (const token of data) {
-        checkGoodMh(this, token, '15m', '1h', '4h');
+        checkGoodMh(this, token, '15m', '1h', '4h', 'CRYPTO');
       }
     }
   }
 
-  @Cron(CronExpression.EVERY_HOUR)
+  @Cron('0 */17 * * * *')
   async checkGoodMhFx() {
     const data = await this.tokenRepository
       .createQueryBuilder('tokens')
@@ -741,7 +547,7 @@ export class AppService implements OnModuleInit {
 
     if (data.length > 0) {
       for (const token of data) {
-        checkGoodMh(this, token, '1h', '4h', '1d');
+        checkGoodMh(this, token, '15m', '1h', '4h', 'FOREX');
       }
     }
   }
