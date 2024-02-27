@@ -5,21 +5,21 @@ import { API_KEY_FOREX } from './constant';
 
 export const initData = async (__this: any) => {
   console.log('initData start');
-  for (const token of forexPairs) {
-    await initFx(token, __this, '15min', '15m');
-    await initFx(token, __this, '1h', '1h');
-    await initFx(token, __this, '4h', '4h');
-    await initFx(token, __this, '1day', '1d');
-    await initFx(token, __this, '1week', '1w');
-  }
+  // for (const token of forexPairs) {
+  //   await initFx(token, __this, '15min', '15m');
+  //   await initFx(token, __this, '1h', '1h');
+  //   await initFx(token, __this, '4h', '4h');
+  //   await initFx(token, __this, '1day', '1d');
+  //   await initFx(token, __this, '1week', '1w');
+  // }
 
-  for (const token of cryptoPairs) {
-    await initCr(token, __this, '15m');
-    await initCr(token, __this, '1h');
-    await initCr(token, __this, '4h');
-    await initCr(token, __this, '1d');
-    await initCr(token, __this, '1w');
-  }
+  // for (const token of cryptoPairs) {
+  //   await initCr(token, __this, '15m');
+  //   await initCr(token, __this, '1h');
+  //   await initCr(token, __this, '4h');
+  //   await initCr(token, __this, '1d');
+  //   await initCr(token, __this, '1w');
+  // }
 
   console.log('initData end');
 };

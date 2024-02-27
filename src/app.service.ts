@@ -254,6 +254,30 @@ export class AppService implements OnModuleInit {
         },
       );
     });
+
+    global.bot.command('calendar', async (msg) => {
+      const res = await axios.post(
+        `https://www.forexfactory.com/calendar/apply-settings/1001?navigation=0`,
+        {
+          default_view: 'today',
+          impacts: [3, 2],
+          event_types: [1, 2, 3, 4, 5, 7, 8, 9, 10, 11],
+          currencies: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+          begin_date: 'February 27, 2024',
+          end_date: 'February 27, 2024',
+        },
+      );
+      console.log('🚀 ~ AppService ~ global.bot.command ~ res:', res);
+      // global.bot.telegram.sendMessage(
+      //   msg.chat.id,
+      //   `
+      // \n /popular_token : Lấy thông tin BTC, Vàng, Dầu
+      // `,
+      //   {
+      //     parse_mode: 'HTML',
+      //   },
+      // );
+    });
   }
 
   //============================Forex==============================
