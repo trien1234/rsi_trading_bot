@@ -292,8 +292,11 @@ export class AppService implements OnModuleInit {
     });
 
     global.bot.command('calendar2', async (msg) => {
-      const fromDate = moment().subtract(1, 'd').format('YYYY-MM-DD');
-      const toDate = moment().format('YYYY-MM-DD');
+      const fromDate = moment()
+        .add(7, 'hours')
+        .subtract(1, 'd')
+        .format('YYYY-MM-DD');
+      const toDate = moment().add(7, 'hours').format('YYYY-MM-DD');
       const res: any = await axios.get(
         `https://economic-calendar.tradingview.com/events?from=${fromDate}T17%3A00%3A00.000Z&to=${toDate}T17%3A00%3A00.000Z&countries=US%2CAU%2CCA%2CCH%2CCN%2CEU%2CGB%2CJP`,
       );
