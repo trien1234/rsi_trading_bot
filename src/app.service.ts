@@ -18,6 +18,8 @@ import {
   checkTechnical4h,
   checkTrendH4,
 } from './service';
+import * as moment from 'moment';
+
 import { cryptoPairs, forexPairs, popularToken } from './tokens';
 @Injectable()
 export class AppService implements OnModuleInit {
@@ -247,7 +249,9 @@ export class AppService implements OnModuleInit {
       \n /4h_equal_fx : Lấy các token forex có xu hướng đồng pha trong 4h - 1d
       \n /1d_diff_fx : Lấy các token forex có xu hướng ngược pha trong 1d - 1w
       \n /1d_equal_fx : Lấy các token forex có xu hướng đồng pha trong 1d - 1w
-      \n /popular_token : Lấy thông tin BTC, Vàng, Dầu
+      \n /1d_equal_fx : Lấy các token forex có xu hướng đồng pha trong 1d - 1w
+      \n /calendar3 : Lịch kinh tế 3 sao
+      \n /calendar2 : Lịch kinh tế 2 sao
       `,
         {
           parse_mode: 'HTML',
@@ -255,29 +259,69 @@ export class AppService implements OnModuleInit {
       );
     });
 
-    // global.bot.command('calendar', async (msg) => {
-    //   const res = await axios.post(
-    //     `https://www.forexfactory.com/calendar/apply-settings/1001?navigation=0`,
-    //     {
-    //       default_view: 'today',
-    //       impacts: [3, 2],
-    //       event_types: [1, 2, 3, 4, 5, 7, 8, 9, 10, 11],
-    //       currencies: [1, 2, 3, 4, 5, 6, 7, 8, 9],
-    //       begin_date: 'February 27, 2024',
-    //       end_date: 'February 27, 2024',
-    //     },
-    //   );
-    //   console.log('🚀 ~ AppService ~ global.bot.command ~ res:', res);
-    //   // global.bot.telegram.sendMessage(
-    //   //   msg.chat.id,
-    //   //   `
-    //   // \n /popular_token : Lấy thông tin BTC, Vàng, Dầu
-    //   // `,
-    //   //   {
-    //   //     parse_mode: 'HTML',
-    //   //   },
-    //   // );
-    // });
+    global.bot.command('calendar3', async (msg) => {
+      const fromDate = moment().subtract(1, 'd').format('YYYY-MM-DD');
+      const toDate = moment().format('YYYY-MM-DD');
+      const res: any = await axios.get(
+        `https://economic-calendar.tradingview.com/events?from=${fromDate}T17%3A00%3A00.000Z&to=${toDate}T17%3A00%3A00.000Z&countries=US%2CAU%2CCA%2CCH%2CCN%2CEU%2CGB%2CJP`,
+      );
+      if (res?.data?.result?.length > 0) {
+        let calendar = '';
+        res?.data?.result?.map((val) => {
+          if (val?.importance === 1) {
+            const content = `
+              \n<b>Date: ${moment(val?.date).format('DD/MM/YYYY HH:mm')}</b>
+              \n<b>Currency: ${val?.currency}</b>
+              \n<b>Name: </b> ${val?.title}
+              \n<b>Importance: ***</b>
+              \n***********************************************
+            `;
+            calendar += content;
+          }
+        });
+        if (calendar.length > 0) {
+          global.bot.telegram.sendMessage(msg.chat.id, calendar, {
+            parse_mode: 'HTML',
+          });
+        }
+      } else {
+        global.bot.telegram.sendMessage(msg.chat.id, 'No data', {
+          parse_mode: 'HTML',
+        });
+      }
+    });
+
+    global.bot.command('calendar2', async (msg) => {
+      const fromDate = moment().subtract(1, 'd').format('YYYY-MM-DD');
+      const toDate = moment().format('YYYY-MM-DD');
+      const res: any = await axios.get(
+        `https://economic-calendar.tradingview.com/events?from=${fromDate}T17%3A00%3A00.000Z&to=${toDate}T17%3A00%3A00.000Z&countries=US%2CAU%2CCA%2CCH%2CCN%2CEU%2CGB%2CJP`,
+      );
+      if (res?.data?.result?.length > 0) {
+        let calendar = '';
+        res?.data?.result?.map((val) => {
+          if (val?.importance === 0) {
+            const content = `
+              \n<b>Date: ${moment(val?.date).format('DD/MM/YYYY HH:mm')}</b>
+              \n<b>Currency: ${val?.currency}</b>
+              \n<b>Name: </b> ${val?.title}
+              \n<b>Importance: **</b>
+              \n***********************************************
+            `;
+            calendar += content;
+          }
+        });
+        if (calendar.length > 0) {
+          global.bot.telegram.sendMessage(msg.chat.id, calendar, {
+            parse_mode: 'HTML',
+          });
+        }
+      } else {
+        global.bot.telegram.sendMessage(msg.chat.id, 'No data', {
+          parse_mode: 'HTML',
+        });
+      }
+    });
   }
 
   //============================Forex==============================
@@ -377,7 +421,7 @@ export class AppService implements OnModuleInit {
         batchSize += 10;
       }
     } else {
-      global.bot.telegram.sendMessage(msg.chat.id, 'No data found!', {
+      global.bot.telegram.sendMessage(msg.chat.id, 'No data', {
         parse_mode: 'HTML',
       });
     }
