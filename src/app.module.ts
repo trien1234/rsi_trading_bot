@@ -8,9 +8,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
 import { Token } from './database/tokens.entity';
 import { TokenHaveTrend } from './database/tokensHaveTrend.entity';
+import { Calendars } from './database/calendar.entity';
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Token, TokenHaveTrend]),
+    TypeOrmModule.forFeature([Token, TokenHaveTrend, Calendars]),
     ScheduleModule.forRoot(),
     ConfigModule.forRoot(),
     CacheModule.register({

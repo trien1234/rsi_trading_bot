@@ -6,7 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import axios from 'axios';
 import { Cache } from 'cache-manager';
 import { ema, rsi, wma } from 'technicalindicators';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { TREND_TYPE } from './constant';
 import { Token } from './database/tokens.entity';
 import { TokenHaveTrend } from './database/tokensHaveTrend.entity';
@@ -21,12 +21,15 @@ import {
 import * as moment from 'moment';
 
 import { cryptoPairs, forexPairs, popularToken } from './tokens';
+import { Calendars } from './database/calendar.entity';
 @Injectable()
 export class AppService implements OnModuleInit {
   constructor(
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     @InjectRepository(Token)
     private readonly tokenRepository: Repository<Token>,
+    @InjectRepository(Calendars)
+    private readonly calendarRepository: Repository<Calendars>,
     @InjectRepository(TokenHaveTrend)
     private readonly tokenHaveTrendRepository: Repository<TokenHaveTrend>,
   ) {}
@@ -332,6 +335,103 @@ export class AppService implements OnModuleInit {
         });
       }
     });
+  }
+
+  // ==========================calendar===========================
+  @Cron(CronExpression.EVERY_DAY_AT_1AM)
+  async checkCalendar() {
+    const fromDate = moment().subtract(1, 'd').format('YYYY-MM-DD');
+    const toDate = moment().format('YYYY-MM-DD');
+    const res: any = await axios.get(
+      `https://economic-calendar.tradingview.com/events?from=${fromDate}T17%3A00%3A00.000Z&to=${toDate}T17%3A00%3A00.000Z&countries=US%2CAU%2CCA%2CCH%2CCN%2CEU%2CGB%2CJP`,
+    );
+    if (res?.data?.result?.length > 0) {
+      const data = [];
+      for (const val of res?.data?.result) {
+        if (val?.importance >= 0) {
+          const time = moment().add(7, 'hours').unix();
+          const timeCalendar = moment(val?.date).add(7, 'hours').unix();
+          const timeNoti8h = moment(val?.date)
+            .add(7, 'hours')
+            .subtract(8, 'hours')
+            .unix();
+          const timeNoti4h = moment(val?.date)
+            .add(7, 'hours')
+            .subtract(4, 'hours')
+            .unix();
+          if (timeCalendar > time) {
+            data.push({
+              date: moment(val?.date)
+                .add(7, 'hours')
+                .format('DD/MM/YYYY HH:mm')
+                .toString(),
+              currency: val?.currency,
+              title: val?.title,
+              importance: val?.importance,
+              timeNoti: timeNoti8h,
+            });
+            data.push({
+              date: moment(val?.date)
+                .add(7, 'hours')
+                .format('DD/MM/YYYY HH:mm')
+                .toString(),
+              currency: val?.currency,
+              title: val?.title,
+              importance: val?.importance,
+              timeNoti: timeNoti4h,
+            });
+          }
+        }
+      }
+      await this.calendarRepository.save(data);
+    }
+  }
+
+  @Cron(CronExpression.EVERY_5_MINUTES)
+  async checkCalendarNoti() {
+    const calendar = await this.calendarRepository
+      .createQueryBuilder('calendars')
+      .orderBy('timeNoti', 'ASC')
+      .limit(1)
+      .getOne();
+
+    if (calendar) {
+      const data = await this.calendarRepository
+        .createQueryBuilder('calendars')
+        .where(`calendars.timeNoti = :timeNoti`, {
+          timeNoti: calendar.timeNoti,
+        })
+        .getMany();
+
+      const ids = [];
+      const currentTime = moment().add(7, 'hours').unix();
+      if (data.length > 0 && currentTime > calendar.timeNoti) {
+        let calendar = '';
+        data?.map((val) => {
+          ids.push(val.id);
+          const content = `
+              \n<b>Date: ${val?.date}</b>
+              \n<b>Currency: ${val?.currency}</b>
+              \n<b>Name: </b> ${val?.title}
+              \n<b>Importance: ${val.importance === 1 ? '***' : '**'}</b>
+              \n***********************************************
+            `;
+          calendar += content;
+        });
+        if (calendar.length > 0) {
+          global.bot.telegram.sendMessage(
+            process.env.TELEGRAM_BOT_TOKEN_ID,
+            calendar,
+            {
+              parse_mode: 'HTML',
+            },
+          );
+          await this.calendarRepository.delete({
+            id: In(ids),
+          });
+        }
+      }
+    }
   }
 
   //============================Forex==============================
