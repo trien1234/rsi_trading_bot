@@ -273,7 +273,9 @@ export class AppService implements OnModuleInit {
         res?.data?.result?.map((val) => {
           if (val?.importance === 1) {
             const content = `
-              \n<b>Date: ${moment(val?.date).format('DD/MM/YYYY HH:mm')}</b>
+              \n<b>Date: ${moment(val?.date)
+                .add(7, 'hours')
+                .format('DD/MM/YYYY HH:mm')}</b>
               \n<b>Currency: ${val?.currency}</b>
               \n<b>Name: </b> ${val?.title}
               \n<b>Importance: ***</b>
@@ -308,7 +310,9 @@ export class AppService implements OnModuleInit {
         res?.data?.result?.map((val) => {
           if (val?.importance === 0) {
             const content = `
-              \n<b>Date: ${moment(val?.date).format('DD/MM/YYYY HH:mm')}</b>
+              \n<b>Date: ${moment(val?.date)
+                .add(7, 'hours')
+                .format('DD/MM/YYYY HH:mm')}</b>
               \n<b>Currency: ${val?.currency}</b>
               \n<b>Name: </b> ${val?.title}
               \n<b>Importance: **</b>
