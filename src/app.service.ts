@@ -348,7 +348,7 @@ export class AppService implements OnModuleInit {
     if (res?.data?.result?.length > 0) {
       const data = [];
       for (const val of res?.data?.result) {
-        if (val?.importance >= 0) {
+        if (val?.importance == 1) {
           const time = moment().add(7, 'hours').unix();
           const timeCalendar = moment(val?.date).add(7, 'hours').unix();
           const timeNoti8h = moment(val?.date)
