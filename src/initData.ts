@@ -2,6 +2,7 @@ import axios from 'axios';
 import { cryptoPairs, forexPairs } from './tokens';
 import { delay, getRandomElement } from './common';
 import { API_KEY_FOREX } from './constant';
+import { ema, rsi, wma } from 'technicalindicators';
 
 export const initData = async (__this: any) => {
   console.log('initData start');
@@ -14,6 +15,7 @@ export const initData = async (__this: any) => {
   }
 
   for (const token of cryptoPairs) {
+    await initCr(token, __this, '5m');
     await initCr(token, __this, '15m');
     await initCr(token, __this, '1h');
     await initCr(token, __this, '4h');
@@ -43,6 +45,38 @@ export const initFx = async (token, __this, timeApi, timeCache) => {
         1440000000,
       );
     }
+    //========== api web
+    const fastLength = 5;
+    const slowLength = 30;
+    const data1h = reversed?.map((val) => Number(val));
+    const dataEmaPriceFast = ema({ values: data1h, period: fastLength });
+    const dataEmaPriceSlow = ema({ values: data1h, period: slowLength });
+    const macd =
+      dataEmaPriceFast[dataEmaPriceFast.length - 1] -
+      dataEmaPriceSlow[dataEmaPriceSlow.length - 1];
+
+    const tokenDataLast = data?.[0];
+    const openPrice = tokenDataLast?.open;
+    const closePrice = tokenDataLast?.close;
+    const change = ((closePrice - openPrice) / openPrice) * 100;
+    const resToken = await __this.tokenRepository.findOne({
+      where: {
+        token: token,
+      },
+    });
+    const tokenData = {
+      ...resToken,
+      token,
+      type: 'FOREX',
+      macdOld: resToken?.macd,
+      macd: macd?.toFixed(2),
+    };
+    tokenData[timeCache] = change?.toFixed(2);
+    if (resToken) {
+      tokenData.id = resToken.id;
+    }
+
+    await __this.tokenRepository.save(tokenData);
   } catch (error) {
     console.log('🚀 ~ file: initData.ts:119 ~ initFx ~ error:', error);
   }
@@ -52,10 +86,42 @@ export const initCr = async (token, __this, time) => {
   const res = await axios.get(
     `https://api3.binance.com/api/v3/klines?symbol=${token}&interval=${time}&limit=61`,
   );
-
   const data = res?.data?.map((val) => val?.[4]);
   data?.pop();
+
   if (data?.length > 0) {
     await __this.cacheManager.set(`${token}_${time}`, data, 1440000000);
   }
+
+  const fastLength = 5;
+  const slowLength = 30;
+  const data1h = data?.map((val) => Number(val));
+  const dataEmaPriceFast = ema({ values: data1h, period: fastLength });
+  const dataEmaPriceSlow = ema({ values: data1h, period: slowLength });
+  const macd =
+    dataEmaPriceFast[dataEmaPriceFast.length - 1] -
+    dataEmaPriceSlow[dataEmaPriceSlow.length - 1];
+
+  const tokenDataLast = res?.data?.[res?.data?.length - 1];
+  const openPrice = tokenDataLast?.[1];
+  const closePrice = tokenDataLast?.[4];
+  const change = ((closePrice - openPrice) / openPrice) * 100;
+  const resToken = await __this.tokenRepository.findOne({
+    where: {
+      token: token,
+    },
+  });
+  const tokenData = {
+    ...resToken,
+    token,
+    type: 'CRYPTO',
+    macdOld: resToken?.macd,
+    macd: macd?.toFixed(2),
+  };
+  tokenData[time] = change?.toFixed(2);
+  if (resToken) {
+    tokenData.id = resToken.id;
+  }
+
+  await __this.tokenRepository.save(tokenData);
 };

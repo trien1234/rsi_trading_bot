@@ -17,6 +17,30 @@ export class Token {
   @Column()
   nextTime: string;
 
+  @Column({ nullable: true })
+  '5m': string;
+
+  @Column({ nullable: true })
+  '15m': string;
+
+  @Column({ nullable: true })
+  '1h': string;
+
+  @Column({ nullable: true })
+  '4h': string;
+
+  @Column({ nullable: true })
+  '1d': string;
+
+  @Column({ nullable: true })
+  '1w': string;
+
+  @Column({ nullable: true })
+  'macdOld': string;
+
+  @Column({ nullable: true })
+  'macd': string;
+
   @Column()
   type: string;
 }

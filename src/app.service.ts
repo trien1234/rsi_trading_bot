@@ -475,6 +475,12 @@ export class AppService implements OnModuleInit {
   }
 
   //=============================Crypto===========================
+  @Cron('0 */5 * * * *')
+  async getRSI5m() {
+    for (const token of cryptoPairs) {
+      await initCr(token, this, '5m');
+    }
+  }
 
   @Cron('0 */15 * * * *')
   async getRSI15m() {
@@ -704,7 +710,6 @@ export class AppService implements OnModuleInit {
         type: 'CRYPTO',
       })
       .getMany();
-    console.log('🚀 ~ AppService ~ checkGoodMh ~ data:', data);
 
     if (data.length > 0) {
       for (const token of data) {
@@ -728,5 +733,10 @@ export class AppService implements OnModuleInit {
         checkGoodMh(this, token, '15m', '1h', '4h', 'FOREX');
       }
     }
+  }
+
+  async getToken() {
+    const resToken = await this.tokenRepository.find();
+    return resToken;
   }
 }

@@ -1,6 +1,6 @@
 export const cryptoPairs = [
   'BTCUSDT',
-  '1INCHUSDT',
+  'TONUSDT',
   'AAVEUSDT',
   'ADAUSDT',
   'ALGOUSDT',
@@ -102,8 +102,7 @@ export const cryptoPairs = [
 ];
 
 export const forexPairs = [
-  'XAU/USD',
-  'WTI/USD',
+  // 'XAU/USD',
   'EUR/USD',
   'AUD/USD',
   'NZD/USD',

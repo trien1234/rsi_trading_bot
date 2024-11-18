@@ -1,4 +1,11 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Post,
+} from '@nestjs/common';
 import { AppService } from './app.service';
 
 @Controller()
@@ -14,5 +21,17 @@ export class AppController {
   async webhook(@Body() body: any) {
     const result = await this.appService.webhook(body);
     return 1;
+  }
+
+  @Get('checkGoodMh')
+  async checkGoodMh() {
+    const result = await this.appService.checkGoodMh();
+  }
+
+  @Get('getToken')
+  @HttpCode(HttpStatus.OK)
+  async getToken() {
+    const result = await this.appService.getToken();
+    return result;
   }
 }
