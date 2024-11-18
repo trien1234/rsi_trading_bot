@@ -5,16 +5,16 @@ export class Token {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({ nullable: true })
   token: string;
 
-  @Column()
+  @Column({ nullable: true })
   trend: string;
 
-  @Column()
+  @Column({ nullable: true })
   process: number;
 
-  @Column()
+  @Column({ nullable: true })
   nextTime: string;
 
   @Column({ nullable: true })
@@ -36,10 +36,40 @@ export class Token {
   '1w': string;
 
   @Column({ nullable: true })
-  'macdOld': string;
+  'macdOld5m': string;
 
   @Column({ nullable: true })
-  'macd': string;
+  'macd5m': string;
+
+  @Column({ nullable: true })
+  'macdOld15m': string;
+
+  @Column({ nullable: true })
+  'macd15m': string;
+
+  @Column({ nullable: true })
+  'macdOld1h': string;
+
+  @Column({ nullable: true })
+  'macd1h': string;
+
+  @Column({ nullable: true })
+  'macdOld4h': string;
+
+  @Column({ nullable: true })
+  'macd4h': string;
+
+  @Column({ nullable: true })
+  'macdOld1d': string;
+
+  @Column({ nullable: true })
+  'macd1d': string;
+
+  @Column({ nullable: true })
+  'macdOld1w': string;
+
+  @Column({ nullable: true })
+  'macd1w': string;
 
   @Column()
   type: string;
