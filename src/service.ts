@@ -326,3 +326,48 @@ export const checkTrendH4 = async (
     }
   }
 };
+
+export const checkTrendCommonToken = async (
+  __this: any,
+  token,
+  time,
+  nextTime,
+  tokenType,
+) => {
+  const data = await __this.tokenRepository.findOne({
+    where: {
+      token: token,
+    },
+  });
+
+  const priceData4h = await __this.cacheManager.get(`${token}_${time}`);
+  if (priceData4h?.length) {
+    const dataRsi3 = rsi({ values: priceData4h, period: 14 });
+
+    const rsi3 = dataRsi3[dataRsi3.length - 1];
+    if (rsi3 <= 30) {
+      const model: any = {
+        token: token,
+        [`trend${time}`]: 'down',
+        [`nextTime${time}`]: Date.now() + nextTime, //4h  72000000 // 1h 18000000  // 15m 4500000 // 5m 1500000 // 5 cay nen
+        type: tokenType,
+      };
+      if (data) {
+        model.id = data.id;
+      }
+      await __this.tokenRepository.save(model);
+    }
+    if (rsi3 >= 70) {
+      const model: any = {
+        token: token,
+        [`trend${time}`]: 'up',
+        [`nextTime${time}`]: Date.now() + nextTime, //4h  72000000 // 1h 18000000  // 15m 4500000 // 5m 1500000
+        type: tokenType,
+      };
+      if (data) {
+        model.id = data.id;
+      }
+      await __this.tokenRepository.save(model);
+    }
+  }
+};

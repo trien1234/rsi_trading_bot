@@ -16,6 +16,7 @@ import {
   checkTechnical1d,
   checkTechnical1h,
   checkTechnical4h,
+  checkTrendCommonToken,
   checkTrendH4,
 } from './service';
 import * as moment from 'moment';
@@ -738,5 +739,28 @@ export class AppService implements OnModuleInit {
   async getToken() {
     const resToken = await this.tokenRepository.find();
     return resToken;
+  }
+
+  //20/11/2024
+
+  @Cron(CronExpression.EVERY_5_MINUTES)
+  async checkTrendCommonToken() {
+    for (const token of cryptoPairs) {
+      checkTrendCommonToken(this, token, '5m', 1500000, 'CRYPTO');
+      checkTrendCommonToken(this, token, '15m', 4500000, 'CRYPTO');
+      checkTrendCommonToken(this, token, '1h', 18000000, 'CRYPTO');
+      checkTrendCommonToken(this, token, '4h', 72000000, 'CRYPTO');
+      checkTrendCommonToken(this, token, '1d', 432000000, 'CRYPTO');
+      checkTrendCommonToken(this, token, '1w', 3024000000, 'CRYPTO');
+    }
+
+    for (const token of forexPairs) {
+      checkTrendCommonToken(this, token, '5m', 1500000, 'FOREX');
+      checkTrendCommonToken(this, token, '15m', 4500000, 'FOREX');
+      checkTrendCommonToken(this, token, '1h', 18000000, 'FOREX');
+      checkTrendCommonToken(this, token, '4h', 72000000, 'FOREX');
+      checkTrendCommonToken(this, token, '1d', 432000000, 'FOREX');
+      checkTrendCommonToken(this, token, '1w', 3024000000, 'FOREX');
+    }
   }
 }

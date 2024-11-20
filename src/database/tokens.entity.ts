@@ -71,6 +71,42 @@ export class Token {
   @Column({ nullable: true })
   'macd1w': string;
 
+  @Column({ nullable: true })
+  'trend5m': string;
+
+  @Column({ nullable: true })
+  'nextTime5m': string;
+
+  @Column({ nullable: true })
+  'trend15m': string;
+
+  @Column({ nullable: true })
+  'nextTime15m': string;
+
+  @Column({ nullable: true })
+  'trend1h': string;
+
+  @Column({ nullable: true })
+  'nextTime1h': string;
+
+  @Column({ nullable: true })
+  'trend4h': string;
+
+  @Column({ nullable: true })
+  'nextTime4h': string;
+
+  @Column({ nullable: true })
+  'trend1d': string;
+
+  @Column({ nullable: true })
+  'nextTime1d': string;
+
+  @Column({ nullable: true })
+  'trend1w': string;
+
+  @Column({ nullable: true })
+  'nextTime1w': string;
+
   @Column()
   type: string;
 }
