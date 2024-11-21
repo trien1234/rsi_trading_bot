@@ -69,7 +69,7 @@ export const initFx = async (token, __this, timeApi, timeCache) => {
       token,
       type: 'FOREX',
       [`macdOld${timeCache}`]: resToken?.[`macd${timeCache}`],
-      [`macd${timeCache}`]: macd?.toFixed(2),
+      [`macd${timeCache}`]: macd,
     };
     tokenData[timeCache] = change?.toFixed(2);
     if (resToken) {
@@ -116,7 +116,7 @@ export const initCr = async (token, __this, time) => {
     token,
     type: 'CRYPTO',
     [`macdOld${time}`]: resToken?.[`macd${time}`],
-    [`macd${time}`]: macd?.toFixed(2),
+    [`macd${time}`]: macd,
   };
   tokenData[time] = change?.toFixed(2);
   if (resToken) {
