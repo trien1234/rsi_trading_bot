@@ -52,8 +52,8 @@ export const initFx = async (token, __this, timeApi, timeCache) => {
     const dataEmaPriceFast = ema({ values: data1h, period: fastLength });
     const dataEmaPriceSlow = ema({ values: data1h, period: slowLength });
     const macd =
-      dataEmaPriceFast[dataEmaPriceFast.length - 1] -
-      dataEmaPriceSlow[dataEmaPriceSlow.length - 1];
+      dataEmaPriceFast[dataEmaPriceFast?.length - 1] -
+      dataEmaPriceSlow[dataEmaPriceSlow?.length - 1];
 
     const tokenDataLast = data?.[0];
     const openPrice = tokenDataLast?.open;
@@ -69,7 +69,7 @@ export const initFx = async (token, __this, timeApi, timeCache) => {
       token,
       type: 'FOREX',
       [`macdOld${timeCache}`]: resToken?.[`macd${timeCache}`],
-      [`macd${timeCache}`]: macd,
+      [`macd${timeCache}`]: macd || '',
     };
     tokenData[timeCache] = change?.toFixed(2);
     if (resToken) {
@@ -99,8 +99,8 @@ export const initCr = async (token, __this, time) => {
   const dataEmaPriceFast = ema({ values: data1h, period: fastLength });
   const dataEmaPriceSlow = ema({ values: data1h, period: slowLength });
   const macd =
-    dataEmaPriceFast[dataEmaPriceFast.length - 1] -
-    dataEmaPriceSlow[dataEmaPriceSlow.length - 1];
+    dataEmaPriceFast[dataEmaPriceFast?.length - 1] -
+    dataEmaPriceSlow[dataEmaPriceSlow?.length - 1];
 
   const tokenDataLast = res?.data?.[res?.data?.length - 1];
   const openPrice = tokenDataLast?.[1];
@@ -116,7 +116,7 @@ export const initCr = async (token, __this, time) => {
     token,
     type: 'CRYPTO',
     [`macdOld${time}`]: resToken?.[`macd${time}`],
-    [`macd${time}`]: macd,
+    [`macd${time}`]: macd || '',
   };
   tokenData[time] = change?.toFixed(2);
   if (resToken) {
