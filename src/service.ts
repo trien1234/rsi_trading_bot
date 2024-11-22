@@ -350,34 +350,34 @@ export const checkTrendCommonToken = async (
     const ema3 = dataEma3[dataEma3.length - 1];
     const wma3 = dataWma3[dataWma3.length - 1];
 
-    if (data?.[`nextTime${time}`] > Date.now()) {
-      if (rsi3 < ema3 && ema3 < wma3 && data?.[`trend${time}`] == 'up') {
-        const model: any = {
-          token: token,
-          [`trend${time}`]: '',
-          [`nextTime${time}`]: '',
-          type: tokenType,
-        };
-        if (data) {
-          model.id = data.id;
-        }
-        await __this.tokenRepository.save(model);
-      }
-      if (rsi3 > ema3 && ema3 > wma3 && data?.[`trend${time}`] == 'down') {
-        const model: any = {
-          token: token,
-          [`trend${time}`]: '',
-          [`nextTime${time}`]: '',
-          type: tokenType,
-        };
-        if (data) {
-          model.id = data.id;
-        }
-        await __this.tokenRepository.save(model);
-      }
-    }
+    // if (data?.[`nextTime${time}`] > Date.now()) {
+    //   if (rsi3 < ema3 && ema3 < wma3 && data?.[`trend${time}`] == 'up') {
+    //     const model: any = {
+    //       token: token,
+    //       [`trend${time}`]: '',
+    //       [`nextTime${time}`]: '',
+    //       type: tokenType,
+    //     };
+    //     if (data) {
+    //       model.id = data.id;
+    //     }
+    //     await __this.tokenRepository.save(model);
+    //   }
+    //   if (rsi3 > ema3 && ema3 > wma3 && data?.[`trend${time}`] == 'down') {
+    //     const model: any = {
+    //       token: token,
+    //       [`trend${time}`]: '',
+    //       [`nextTime${time}`]: '',
+    //       type: tokenType,
+    //     };
+    //     if (data) {
+    //       model.id = data.id;
+    //     }
+    //     await __this.tokenRepository.save(model);
+    //   }
+    // }
 
-    if (rsi3 <= 30) {
+    if (rsi3 <= 35) {
       const model: any = {
         token: token,
         [`trend${time}`]: 'down',
@@ -390,7 +390,7 @@ export const checkTrendCommonToken = async (
       await __this.tokenRepository.save(model);
     }
 
-    if (rsi3 >= 70) {
+    if (rsi3 >= 65) {
       const model: any = {
         token: token,
         [`trend${time}`]: 'up',
