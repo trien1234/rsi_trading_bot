@@ -343,8 +343,38 @@ export const checkTrendCommonToken = async (
   const priceData4h = await __this.cacheManager.get(`${token}_${time}`);
   if (priceData4h?.length) {
     const dataRsi3 = rsi({ values: priceData4h, period: 14 });
+    const dataEma3 = ema({ values: dataRsi3, period: 9 });
+    const dataWma3 = wma({ values: dataRsi3, period: 45 });
 
     const rsi3 = dataRsi3[dataRsi3.length - 1];
+    const ema3 = dataEma3[dataEma3.length - 1];
+    const wma3 = dataWma3[dataWma3.length - 1];
+
+    if (data?.[`nextTime${time}`] > Date.now()) {
+      if (rsi3 < ema3 && ema3 < wma3) {
+        const model: any = {
+          token: token,
+          [`trend${time}`]: 'down',
+          type: tokenType,
+        };
+        if (data) {
+          model.id = data.id;
+        }
+        await __this.tokenRepository.save(model);
+      }
+      if (rsi3 > ema3 && ema3 > wma3) {
+        const model: any = {
+          token: token,
+          [`trend${time}`]: 'up',
+          type: tokenType,
+        };
+        if (data) {
+          model.id = data.id;
+        }
+        await __this.tokenRepository.save(model);
+      }
+    }
+
     if (rsi3 <= 30) {
       const model: any = {
         token: token,
@@ -357,6 +387,7 @@ export const checkTrendCommonToken = async (
       }
       await __this.tokenRepository.save(model);
     }
+
     if (rsi3 >= 70) {
       const model: any = {
         token: token,
