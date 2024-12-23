@@ -9,6 +9,11 @@ export const API_KEY_FOREX = [
   'faefa3de19fc47f98a808e6a7db4cb96',
   'deea16a3464e478a962fcc9b8c4cc8e7',
   'cbd0f0eda2534527a7daac02963ceeeb',
+  'bcb19cf7a9f34e79a7e0f49bece7bec4',
+  'f57d4742a4184af68276caa971160d75',
+  '07739efef3204132987af49bd5a46790',
+  '7f4e8790b3584a0bb75eaedd4360e662',
+  '6f7530e3827e4ffa8013c1b71dbb747d',
 ];
 
 //768843979 my bot

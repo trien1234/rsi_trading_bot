@@ -7,6 +7,7 @@ import { ema, rsi, wma } from 'technicalindicators';
 export const initData = async (__this: any) => {
   console.log('initData start');
   for (const token of forexPairs) {
+    await initFx(token, __this, '5min', '5m');
     await initFx(token, __this, '15min', '15m');
     await initFx(token, __this, '1h', '1h');
     await initFx(token, __this, '4h', '4h');

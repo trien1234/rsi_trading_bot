@@ -99,6 +99,8 @@ export class AppService implements OnModuleInit {
     ]);
 
     global.bot.command('1h_diff_cr', async (msg) => {
+      console.log('🚀 ~ AppService ~ global.bot.command ~ msg:', msg.chat.id);
+
       this.checkToken(
         checkTechnical1h,
         TREND_TYPE.REVERSE_TREND,
@@ -437,6 +439,13 @@ export class AppService implements OnModuleInit {
 
   //============================Forex==============================
 
+  @Cron(CronExpression.EVERY_5_MINUTES)
+  async getFx5m() {
+    for (const token of forexPairs) {
+      await initFx(token, this, '5min', '5m');
+    }
+  }
+
   @Cron('0 */15 * * * *')
   async getFx15m() {
     for (const token of forexPairs) {
@@ -621,7 +630,7 @@ export class AppService implements OnModuleInit {
         });
 
         // lên 80
-        if (rsiLast > 80) {
+        if (rsiLast > 75) {
           const dataModel: any = {
             token: token,
             process: 1,
@@ -635,7 +644,7 @@ export class AppService implements OnModuleInit {
           await this.tokenHaveTrendRepository.save(dataModel);
         }
 
-        if (rsiLast < 20) {
+        if (rsiLast < 25) {
           const dataModel: any = {
             token: token,
             process: 1,
@@ -681,6 +690,98 @@ export class AppService implements OnModuleInit {
         }
       };
 
+      checkToken(priceData15m, '15m');
+      checkToken(priceData1h, '1h');
+      checkToken(priceData4h, '4h');
+      checkToken(priceData1d, '1d');
+    }
+
+    for (const token of forexPairs) {
+      const priceData5m: any = await this.cacheManager.get(`${token}_5m`);
+      const priceData15m: any = await this.cacheManager.get(`${token}_15m`);
+      const priceData1h: any = await this.cacheManager.get(`${token}_1h`);
+      const priceData4h: any = await this.cacheManager.get(`${token}_4h`);
+      const priceData1d: any = await this.cacheManager.get(`${token}_1d`);
+
+      const checkToken = async (price, time) => {
+        const rsis = rsi({ values: price, period: 14 });
+        const emas = ema({ values: rsis, period: 9 });
+        const wmas = wma({ values: rsis, period: 45 });
+
+        const rsiLast = rsis[rsis.length - 1];
+        const emaLast = emas[emas.length - 1];
+        const wmaLast = wmas[wmas.length - 1];
+
+        const data = await this.tokenHaveTrendRepository.findOne({
+          where: {
+            token: token,
+            time: time,
+            type: 'FOREX',
+          },
+        });
+
+        // lên 80
+        if (rsiLast > 75) {
+          const dataModel: any = {
+            token: token,
+            process: 1,
+            trend: 'up',
+            time: time,
+            type: 'FOREX',
+          };
+          if (data) {
+            dataModel.id = data.id;
+          }
+          await this.tokenHaveTrendRepository.save(dataModel);
+        }
+
+        if (rsiLast < 25) {
+          const dataModel: any = {
+            token: token,
+            process: 1,
+            trend: 'downd',
+            time: time,
+            type: 'FOREX',
+          };
+          if (data) {
+            dataModel.id = data.id;
+          }
+          await this.tokenHaveTrendRepository.save(dataModel);
+        }
+
+        // rồi cắt xuống tẽ 3 đường
+        if (data?.process === 1 && data?.trend === 'up') {
+          if (rsiLast < emaLast && emaLast < wmaLast) {
+            global.bot.telegram.sendMessage(
+              process.env.TELEGRAM_BOT_TOKEN_XAU_ID,
+              `<b>Chờ đến kháng cự gần nhất, phân kì hoặc fibo 0.5 buy: ${token} time: ${time}</b>`,
+              {
+                parse_mode: 'HTML',
+              },
+            );
+            await this.tokenHaveTrendRepository.delete({
+              id: data.id,
+            });
+          }
+        }
+
+        if (data?.process === 1 && data?.trend === 'downd') {
+          if (rsiLast > emaLast && emaLast > wmaLast) {
+            global.bot.telegram.sendMessage(
+              process.env.TELEGRAM_BOT_TOKEN_XAU_ID,
+              `<b>Chờ đến kháng cự gần nhất, phân kì hoặc fibo 0.5 sell: ${token} time: ${time}</b>`,
+              {
+                parse_mode: 'HTML',
+              },
+            );
+            await this.tokenHaveTrendRepository.delete({
+              id: data.id,
+            });
+          }
+        }
+      };
+
+      checkToken(priceData5m, '5m');
       checkToken(priceData15m, '15m');
       checkToken(priceData1h, '1h');
       checkToken(priceData4h, '4h');
