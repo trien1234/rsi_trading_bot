@@ -752,13 +752,13 @@ export class AppService implements OnModuleInit {
         // rồi cắt xuống tẽ 3 đường
         if (data?.process === 1 && data?.trend === 'up') {
           if (rsiLast < emaLast && emaLast < wmaLast) {
-            global.bot.telegram.sendMessage(
-              process.env.TELEGRAM_BOT_TOKEN_XAU_ID,
-              `<b>Chờ đến kháng cự gần nhất, phân kì hoặc fibo 0.5 buy: ${token} time: ${time}</b>`,
-              {
-                parse_mode: 'HTML',
-              },
-            );
+            // global.bot.telegram.sendMessage(
+            //   process.env.TELEGRAM_BOT_TOKEN_XAU_ID,
+            //   `<b>Chờ đến kháng cự gần nhất, phân kì hoặc fibo 0.5 buy: ${token} time: ${time}</b>`,
+            //   {
+            //     parse_mode: 'HTML',
+            //   },
+            // );
             await this.tokenHaveTrendRepository.delete({
               id: data.id,
             });
@@ -767,13 +767,13 @@ export class AppService implements OnModuleInit {
 
         if (data?.process === 1 && data?.trend === 'downd') {
           if (rsiLast > emaLast && emaLast > wmaLast) {
-            global.bot.telegram.sendMessage(
-              process.env.TELEGRAM_BOT_TOKEN_XAU_ID,
-              `<b>Chờ đến kháng cự gần nhất, phân kì hoặc fibo 0.5 sell: ${token} time: ${time}</b>`,
-              {
-                parse_mode: 'HTML',
-              },
-            );
+            // global.bot.telegram.sendMessage(
+            //   process.env.TELEGRAM_BOT_TOKEN_XAU_ID,
+            //   `<b>Chờ đến kháng cự gần nhất, phân kì hoặc fibo 0.5 sell: ${token} time: ${time}</b>`,
+            //   {
+            //     parse_mode: 'HTML',
+            //   },
+            // );
             await this.tokenHaveTrendRepository.delete({
               id: data.id,
             });

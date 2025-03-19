@@ -78,6 +78,14 @@ export const initFx = async (token, __this, timeApi, timeCache) => {
     }
 
     await __this.tokenRepository.save(tokenData);
+
+    //detect trend
+    const { peaks: extremaPeaks, troughs: extremaTroughs } =
+      findExtrema(reversed);
+    const trend = determineTrend(extremaPeaks, extremaTroughs);
+    console.log('Xu hướng hiện tại:', trend);
+
+    detectReversal(extremaPeaks, extremaTroughs, data, token, timeApi);
   } catch (error) {
     console.log('🚀 ~ file: initData.ts:119 ~ initFx ~ error:', error);
   }
@@ -126,3 +134,70 @@ export const initCr = async (token, __this, time) => {
 
   await __this.tokenRepository.save(tokenData);
 };
+
+function findExtrema(prices) {
+  const peaks = [];
+  const troughs = [];
+
+  for (let i = 1; i < prices.length - 1; i++) {
+    const prevSlope = prices[i] - prices[i - 1];
+    const nextSlope = prices[i + 1] - prices[i];
+
+    if (prevSlope > 0 && nextSlope < 0) {
+      peaks.push({ index: i, value: prices[i] });
+    } else if (prevSlope < 0 && nextSlope > 0) {
+      troughs.push({ index: i, value: prices[i] });
+    }
+  }
+
+  return { peaks, troughs };
+}
+function determineTrend(peaks, troughs) {
+  function isUptrend(points) {
+    let count = 0;
+    for (let i = 1; i < points.length; i++) {
+      if (points[i].value > points[i - 1].value) {
+        count++;
+      } else {
+        count--;
+      }
+    }
+    return count > 0;
+  }
+
+  const peakTrend = isUptrend(peaks);
+  const troughTrend = isUptrend(troughs);
+
+  if (peakTrend && troughTrend) return 'up';
+  if (!peakTrend && !troughTrend) return 'down';
+  return 'sideways';
+}
+
+function detectReversal(peaks, troughs, prices, token, time) {
+  const trend = determineTrend(peaks, troughs);
+  const lastFourPrices = prices.slice(-4);
+
+  if (lastFourPrices.length < 4) return;
+
+  const [p1, p2, p3, p4] = lastFourPrices;
+
+  if (trend === 'down' && p2 > p1 && p4 > p3 && p3 > p1 && p4 > p2) {
+    global.bot.telegram.sendMessage(
+      process.env.TELEGRAM_BOT_TOKEN_XAU_ID,
+      `<b> Cảnh báo: Xu hướng có thể đảo chiều sang TĂNG: ${token} time: ${time}</b>`,
+      {
+        parse_mode: 'HTML',
+      },
+    );
+  }
+
+  if (trend === 'up' && p2 < p1 && p4 < p3 && p3 < p1 && p4 < p2) {
+    global.bot.telegram.sendMessage(
+      process.env.TELEGRAM_BOT_TOKEN_XAU_ID,
+      `<b> Cảnh báo: Xu hướng có thể đảo chiều sang GIẢM: ${token} time: ${time}</b>`,
+      {
+        parse_mode: 'HTML',
+      },
+    );
+  }
+}
