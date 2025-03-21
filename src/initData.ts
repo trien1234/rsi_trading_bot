@@ -79,13 +79,13 @@ export const initFx = async (token, __this, timeApi, timeCache) => {
 
     await __this.tokenRepository.save(tokenData);
 
-    //detect trend
-    const { peaks: extremaPeaks, troughs: extremaTroughs } =
-      findExtrema(reversed);
-    const trend = determineTrend(extremaPeaks, extremaTroughs);
-    console.log('Xu hướng hiện tại:', trend);
+    // //detect trend
+    // const { peaks: extremaPeaks, troughs: extremaTroughs } =
+    //   findExtrema(reversed);
+    // const trend = determineTrend(extremaPeaks, extremaTroughs);
+    // console.log('Xu hướng hiện tại:', trend);
 
-    detectReversal(extremaPeaks, extremaTroughs, reversed, token, timeApi);
+    // detectReversal(extremaPeaks, extremaTroughs, reversed, token, timeApi);
   } catch (error) {
     console.log('🚀 ~ file: initData.ts:119 ~ initFx ~ error:', error);
   }
