@@ -762,8 +762,9 @@ export class AppService implements OnModuleInit {
         }
 
         // rồi cắt xuống tẽ 3 đường
-        if (data?.process === 1 && data?.trend === 'up') {
+        if (data?.process >= 1 && data?.trend === 'up') {
           if (rsiLast < emaLast && emaLast < wmaLast) {
+            const processData = data?.process;
             // global.bot.telegram.sendMessage(
             //   process.env.TELEGRAM_BOT_TOKEN_XAU_ID,
             //   `<b>Chờ đến kháng cự gần nhất, phân kì hoặc fibo 0.5 buy: ${token} time: ${time}</b>`,
@@ -771,14 +772,23 @@ export class AppService implements OnModuleInit {
             //     parse_mode: 'HTML',
             //   },
             // );
-            await this.tokenHaveTrendRepository.delete({
-              id: data.id,
-            });
+            const dataModel: any = {
+              token: token,
+              process: processData + 1,
+              trend: 'up',
+              time: time,
+              type: 'FOREX',
+            };
+            if (data) {
+              dataModel.id = data.id;
+            }
+            await this.tokenHaveTrendRepository.save(dataModel);
           }
         }
 
-        if (data?.process === 1 && data?.trend === 'downd') {
+        if (data?.process >= 1 && data?.trend === 'downd') {
           if (rsiLast > emaLast && emaLast > wmaLast) {
+            const processData = data?.process;
             // global.bot.telegram.sendMessage(
             //   process.env.TELEGRAM_BOT_TOKEN_XAU_ID,
             //   `<b>Chờ đến kháng cự gần nhất, phân kì hoặc fibo 0.5 sell: ${token} time: ${time}</b>`,
@@ -786,9 +796,64 @@ export class AppService implements OnModuleInit {
             //     parse_mode: 'HTML',
             //   },
             // );
-            await this.tokenHaveTrendRepository.delete({
-              id: data.id,
-            });
+            const dataModel: any = {
+              token: token,
+              process: processData + 1,
+              trend: 'downd',
+              time: time,
+              type: 'FOREX',
+            };
+            if (data) {
+              dataModel.id = data.id;
+            }
+            await this.tokenHaveTrendRepository.save(dataModel);
+          }
+        }
+
+        //đang up mà 3 đường tẽ lên mà process < 25 thì xóa
+        if (data?.process >= 1 && data?.trend === 'up') {
+          if (rsiLast > emaLast && emaLast > wmaLast) {
+            const processData = data?.process;
+            if (processData < 25) {
+              await this.tokenHaveTrendRepository.delete({
+                id: data.id,
+              });
+            }
+            if (processData > 25) {
+              await this.tokenHaveTrendRepository.delete({
+                id: data.id,
+              });
+              global.bot.telegram.sendMessage(
+                process.env.TELEGRAM_BOT_TOKEN_XAU_ID,
+                `<b>Chờ hồi để sell : ${token} time: ${time}</b>`,
+                {
+                  parse_mode: 'HTML',
+                },
+              );
+            }
+          }
+        }
+
+        if (data?.process >= 1 && data?.trend === 'downd') {
+          if (rsiLast < emaLast && emaLast < wmaLast) {
+            const processData = data?.process;
+            if (processData < 25) {
+              await this.tokenHaveTrendRepository.delete({
+                id: data.id,
+              });
+            }
+            if (processData > 25) {
+              await this.tokenHaveTrendRepository.delete({
+                id: data.id,
+              });
+              global.bot.telegram.sendMessage(
+                process.env.TELEGRAM_BOT_TOKEN_XAU_ID,
+                `<b>Chờ hồi để buy: ${token} time: ${time}</b>`,
+                {
+                  parse_mode: 'HTML',
+                },
+              );
+            }
           }
         }
       };
