@@ -85,7 +85,7 @@ export const initFx = async (token, __this, timeApi, timeCache) => {
     const trend = determineTrend(extremaPeaks, extremaTroughs);
     console.log('Xu hướng hiện tại:', trend);
 
-    detectReversal(extremaPeaks, extremaTroughs, data, token, timeApi);
+    detectReversal(extremaPeaks, extremaTroughs, reversed, token, timeApi);
   } catch (error) {
     console.log('🚀 ~ file: initData.ts:119 ~ initFx ~ error:', error);
   }
@@ -133,6 +133,31 @@ export const initCr = async (token, __this, time) => {
   }
 
   await __this.tokenRepository.save(tokenData);
+};
+
+export const getTrendFx = async (__this: any, time) => {
+  const upToken = [];
+  const downToken = [];
+  for (const token of forexPairs) {
+    const priceData = await __this.cacheManager.get(`${token}_${time}`);
+    const { peaks: extremaPeaks, troughs: extremaTroughs } =
+      findExtrema(priceData);
+    const trend = determineTrend(extremaPeaks, extremaTroughs);
+    if (trend == 'up') {
+      upToken.push(token);
+    }
+    if (trend == 'down') {
+      upToken.push(downToken);
+    }
+  }
+  global.bot.telegram.sendMessage(
+    process.env.TELEGRAM_BOT_TOKEN_XAU_ID,
+    `<b> Xu hướng TĂNG ${time} : ${upToken?.toString()}</b><br/>`,
+    `<b> Xu hướng GIẢM ${time} : ${upToken?.toString()}</b>`,
+    {
+      parse_mode: 'HTML',
+    },
+  );
 };
 
 function findExtrema(prices) {

@@ -10,7 +10,7 @@ import { In, Repository } from 'typeorm';
 import { TREND_TYPE } from './constant';
 import { Token } from './database/tokens.entity';
 import { TokenHaveTrend } from './database/tokensHaveTrend.entity';
-import { initCr, initData, initFx } from './initData';
+import { getTrendFx, initCr, initData, initFx } from './initData';
 import {
   checkGoodMh,
   checkTechnical1d,
@@ -99,14 +99,31 @@ export class AppService implements OnModuleInit {
     ]);
 
     global.bot.command('1h_diff_cr', async (msg) => {
-      console.log('🚀 ~ AppService ~ global.bot.command ~ msg:', msg.chat.id);
-
       this.checkToken(
         checkTechnical1h,
         TREND_TYPE.REVERSE_TREND,
         msg,
         cryptoPairs,
       );
+    });
+
+    global.bot.command('1h_fx', async (msg) => {
+      getTrendFx(this, '1h');
+    });
+
+    global.bot.command('4h_fx', async (msg) => {
+      getTrendFx(this, '4h');
+    });
+
+    global.bot.command('15m_fx', async (msg) => {
+      getTrendFx(this, '15m');
+    });
+
+    global.bot.command('5m_fx', async (msg) => {
+      getTrendFx(this, '5m');
+    });
+    global.bot.command('1d_fx', async (msg) => {
+      getTrendFx(this, '1d');
     });
 
     global.bot.command('1h_equal_cr', async (msg) => {
@@ -455,7 +472,6 @@ export class AppService implements OnModuleInit {
 
   @Cron('5 0-23/1 * * *')
   async getFx1h() {
-    console.log('update cache 1h fx', new Date());
     for (const token of forexPairs) {
       await initFx(token, this, '1h', '1h');
     }
@@ -463,7 +479,6 @@ export class AppService implements OnModuleInit {
 
   @Cron('10 0-23/4 * * *')
   async getFx4h() {
-    console.log('update cache 4h fx', new Date());
     for (const token of forexPairs) {
       await initFx(token, this, '4h', '4h');
     }
@@ -471,14 +486,12 @@ export class AppService implements OnModuleInit {
 
   @Cron('20 01 * * *')
   async getFx1d() {
-    console.log('update cache 1d fx', new Date());
     for (const token of forexPairs) {
       await initFx(token, this, '1day', '1d');
     }
   }
   @Cron('0 40 02 * * 1-2')
   async getFx1w() {
-    console.log('update cache 1w fx', new Date());
     for (const token of forexPairs) {
       await initFx(token, this, '1week', '1w');
     }
@@ -562,7 +575,6 @@ export class AppService implements OnModuleInit {
   }
 
   async webhook(body) {
-    console.log('🚀 ~ webhook', body);
     global.bot.telegram.sendMessage(
       process.env.TELEGRAM_BOT_TOKEN_XAU_ID,
       `<b>${body?.text}</b>`,

@@ -3,6 +3,7 @@ import { checkTrend, getRandomElement } from './common';
 import { API_KEY_FOREX, TREND_TYPE } from './constant';
 import axios from 'axios';
 import { delay } from 'rxjs';
+import { forexPairs } from './tokens';
 
 export const checkTechnical1h = async (__this: any, token, type) => {
   let priceData1h = await __this.cacheManager.get(`${token}_1h`);
